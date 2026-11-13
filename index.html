@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0f0d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ZaryadGo">
+<meta name="description" content="ZaryadGo — Toshkent bo'ylab EV zaryadlash stansiyalari: xarita, narxlar, jonli holat va navigatsiya.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23bdf63c'/%3E%3Cpath d='M13 2L3 14h7l-1 8 10-12h-7l1-8z' fill='%230a0f0d'/%3E%3C/svg%3E">
+<title>ZaryadGo — aqlli EV zaryadlash platformasi</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0f0d;--bg2:#0e1614;--panel:#121d1a;--panel2:#16241f;--line:#1f322c;
+    --txt:#eaf3ee;--muted:#7d958c;--lime:#bdf63c;--lime-dim:#8fcf2a;--teal:#2dd4bf;
+    --amber:#fbbf24;--red:#fb6f6f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    font-family:'Manrope',sans-serif;color:var(--txt);overflow:hidden;-webkit-font-smoothing:antialiased;
+    background:radial-gradient(1200px 600px at 80% -10%,rgba(189,246,60,.07),transparent 60%),
+               radial-gradient(900px 500px at -10% 110%,rgba(45,212,191,.06),transparent 55%),var(--bg);
+  }
+  ::selection{background:var(--lime);color:#0a0f0d}
+  h1,h2,h3,h4{font-family:'Bricolage Grotesque';letter-spacing:-.02em;line-height:1.06}
+  button{font-family:'Manrope'}
+  .app{display:flex;flex-direction:column;height:100vh;height:100dvh;width:100%;overflow:hidden}
+
+  header{display:flex;align-items:center;gap:18px;padding:13px 22px;border-bottom:1px solid var(--line);
+    background:linear-gradient(180deg,rgba(255,255,255,.02),transparent);backdrop-filter:blur(8px);z-index:600}
+  .logo{display:flex;align-items:center;gap:11px;font-family:'Bricolage Grotesque';font-weight:800;font-size:21px}
+  .bolt{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;
+    background:linear-gradient(145deg,var(--lime),var(--lime-dim));color:#0a0f0d;box-shadow:0 0 22px rgba(189,246,60,.45)}
+  .bolt svg{width:19px;height:19px}
+  .logo span b{color:var(--lime)}
+  .switcher{margin-left:8px;display:flex;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:4px;gap:4px}
+  .switcher button{font-weight:700;font-size:13.5px;color:var(--muted);background:transparent;border:none;cursor:pointer;
+    padding:8px 16px;border-radius:9px;display:flex;align-items:center;gap:7px;transition:.2s}
+  .switcher button.active{background:var(--lime);color:#0a0f0d}
+  .switcher button:not(.active):hover{color:var(--txt)}
+  .switcher svg{width:15px;height:15px}
+  .spacer{flex:1}
+  .pill{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--muted);
+    border:1px solid var(--line);background:var(--panel);padding:8px 13px;border-radius:30px}
+  .pulse{width:8px;height:8px;border-radius:50%;background:var(--lime);animation:pulse 2s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(189,246,60,.5)}70%{box-shadow:0 0 0 9px rgba(189,246,60,0)}100%{box-shadow:0 0 0 0 rgba(189,246,60,0)}}
+  .acct{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:30px;
+    padding:6px 7px 6px 14px;cursor:pointer;font-weight:700;font-size:13.5px;transition:.18s}
+  .acct:hover{border-color:rgba(189,246,60,.4)}
+  .avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(145deg,var(--teal),var(--lime));display:grid;place-items:center;color:#0a0f0d;font-weight:800;font-size:13px}
+
+  .view{flex:1;min-height:0;display:none}
+  .view.active{display:flex}
+
+  /* session banner */
+  #sessionBar{display:none;align-items:center;gap:16px;padding:11px 22px;background:linear-gradient(90deg,rgba(189,246,60,.16),rgba(45,212,191,.06));
+    border-bottom:1px solid rgba(189,246,60,.3);z-index:580;cursor:pointer}
+  #sessionBar.show{display:flex}
+  #sessionBar .live{width:9px;height:9px;border-radius:50%;background:var(--lime);animation:pulse 1.4s infinite}
+  #sessionBar b{color:var(--lime)}
+  #sessionBar .sb-right{margin-left:auto;font-weight:800;font-family:'Bricolage Grotesque';font-size:16px}
+
+  #map{flex:1;min-height:0;min-width:0;background:#0c1411;position:relative;z-index:0}
+  .leaflet-container{background:#0c1411;font-family:'Manrope'}
+  .leaflet-control-attribution{background:rgba(10,15,13,.7)!important;color:#5e756c!important}
+  .leaflet-control-attribution a{color:#7d958c!important}
+
+  .sidebar{width:388px;flex-shrink:0;background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .side-head{padding:18px 20px 12px}
+  .side-head h2{font-size:22px;margin-bottom:3px}
+  .side-head p{color:var(--muted);font-size:13.5px}
+  .search{margin:0 20px 12px;position:relative}
+  .search input{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px 12px 40px;
+    color:var(--txt);font-family:'Manrope';font-size:14px;outline:none;transition:.2s}
+  .search input:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(189,246,60,.12)}
+  .search svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted)}
+  .filters{display:flex;gap:8px;padding:0 20px 10px;flex-wrap:wrap}
+  .chip{font-size:12.5px;font-weight:700;color:var(--muted);background:var(--panel);border:1px solid var(--line);
+    border-radius:30px;padding:7px 13px;cursor:pointer;transition:.18s}
+  .chip.on{background:rgba(189,246,60,.13);color:var(--lime);border-color:rgba(189,246,60,.4)}
+  .sortrow{display:flex;align-items:center;gap:8px;padding:0 20px 12px;font-size:12.5px;color:var(--muted)}
+  .sortrow select{background:var(--panel);border:1px solid var(--line);color:var(--txt);border-radius:9px;padding:6px 9px;font-family:'Manrope';font-size:12.5px;outline:none;cursor:pointer}
+
+  .list{flex:1;overflow-y:auto;padding:4px 14px 18px}
+  .list::-webkit-scrollbar{width:8px}.list::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:15px;margin-bottom:11px;
+    cursor:pointer;transition:.18s;position:relative;overflow:hidden}
+  .card:hover{border-color:rgba(189,246,60,.35);transform:translateY(-2px)}
+  .card.sel{border-color:var(--lime);box-shadow:0 0 0 3px rgba(189,246,60,.1)}
+  .card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--lime);opacity:0;transition:.2s}
+  .card.sel::before{opacity:1}
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .card-name{font-family:'Bricolage Grotesque';font-weight:700;font-size:16px;display:flex;align-items:center;gap:7px}
+  .card-addr{color:var(--muted);font-size:12.5px;margin-top:2px}
+  .status{font-size:11px;font-weight:800;padding:5px 9px;border-radius:7px;white-space:nowrap;text-transform:uppercase;letter-spacing:.03em}
+  .s-free{background:rgba(189,246,60,.15);color:var(--lime)}
+  .s-busy{background:rgba(251,191,36,.15);color:var(--amber)}
+  .s-off{background:rgba(251,111,111,.13);color:var(--red)}
+  .rate{font-size:12px;color:var(--amber);font-weight:700;display:flex;align-items:center;gap:3px}
+  .rate svg{width:13px;height:13px;fill:var(--amber)}
+  .meta{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
+  .tag{font-size:11.5px;font-weight:600;color:var(--muted);background:var(--panel2);border:1px solid var(--line);
+    padding:5px 9px;border-radius:8px;display:flex;align-items:center;gap:5px}
+  .tag b{color:var(--txt)}.tag.price b{color:var(--lime)}.tag.dist b{color:var(--teal)}
+  .card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:11px;border-top:1px solid var(--line)}
+  .ports{font-size:12.5px;color:var(--muted)}.ports b{color:var(--txt)}
+  .go{font-weight:700;font-size:12.5px;color:#0a0f0d;background:var(--lime);border:none;border-radius:9px;
+    padding:8px 13px;cursor:pointer;display:flex;align-items:center;gap:6px;transition:.18s}
+  .go:hover{background:#cfff52;transform:translateX(2px)}.go svg{width:14px;height:14px}
+  .fav{background:transparent;border:none;cursor:pointer;color:var(--muted);padding:3px;display:grid;place-items:center}
+  .fav svg{width:18px;height:18px;transition:.18s}
+  .fav.on svg{fill:var(--red);stroke:var(--red)}
+
+  .mk{width:38px;height:38px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:grid;place-items:center;
+    box-shadow:0 6px 14px rgba(0,0,0,.5);border:2px solid #0a0f0d}
+  .mk svg{transform:rotate(45deg);width:17px;height:17px}
+  .mk.free{background:var(--lime)}.mk.busy{background:var(--amber)}.mk.off{background:var(--red)}
+  .mk-me{width:22px;height:22px;border-radius:50%;background:var(--teal);border:3px solid #0a0f0d;box-shadow:0 0 0 6px rgba(45,212,191,.2),0 4px 10px rgba(0,0,0,.5)}
+
+  /* ---- Drawer ---- */
+  .scrim{position:fixed;inset:0;background:rgba(4,8,7,.6);backdrop-filter:blur(2px);opacity:0;visibility:hidden;transition:.25s;z-index:900}
+  .scrim.show{opacity:1;visibility:visible}
+  .drawer{position:fixed;top:0;right:0;height:100%;width:440px;max-width:92vw;background:var(--bg2);border-left:1px solid var(--line);
+    z-index:950;transform:translateX(100%);transition:transform .3s cubic-bezier(.3,.8,.3,1);display:flex;flex-direction:column;box-shadow:-30px 0 60px rgba(0,0,0,.5)}
+  .drawer.show{transform:translateX(0)}
+  .dr-hero{height:140px;background:linear-gradient(135deg,#16302a,#0e1614);position:relative;display:flex;align-items:flex-end;padding:18px 22px;overflow:hidden}
+  .dr-hero::after{content:"";position:absolute;inset:0;background:radial-gradient(400px 200px at 80% -20%,rgba(189,246,60,.25),transparent 60%)}
+  .dr-close{position:absolute;top:16px;right:16px;width:34px;height:34px;border-radius:10px;background:rgba(10,15,13,.6);
+    border:1px solid var(--line);color:var(--txt);cursor:pointer;display:grid;place-items:center;z-index:2}
+  .dr-close svg{width:17px;height:17px}
+  .dr-hero h2{font-size:24px;position:relative;z-index:1}
+  .dr-hero .dr-addr{color:var(--muted);font-size:13px;margin-top:3px;position:relative;z-index:1}
+  .dr-body{flex:1;overflow-y:auto;padding:20px 22px 30px}
+  .dr-body::-webkit-scrollbar{width:8px}.dr-body::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+  .dr-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
+  .ds{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px;text-align:center}
+  .ds .v{font-family:'Bricolage Grotesque';font-weight:800;font-size:19px}
+  .ds .l{color:var(--muted);font-size:11px;margin-top:3px}
+  .dr-row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+  .dr-row span:first-child{color:var(--muted)}.dr-row b{font-weight:700}
+  .dr-amen{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0 4px}
+  .amen{font-size:12px;font-weight:600;color:var(--teal);background:rgba(45,212,191,.1);border:1px solid rgba(45,212,191,.25);padding:6px 11px;border-radius:9px}
+  .dr-actions{display:flex;gap:10px;margin:20px 0 6px}
+  .btn{flex:1;border:none;border-radius:13px;padding:14px;font-weight:800;font-size:14.5px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;transition:.18s}
+  .btn svg{width:17px;height:17px}
+  .btn-primary{background:var(--lime);color:#0a0f0d;box-shadow:0 0 22px rgba(189,246,60,.3)}
+  .btn-primary:hover{background:#cfff52}
+  .btn-primary:disabled{background:var(--line);color:var(--muted);box-shadow:none;cursor:not-allowed}
+  .btn-ghost{background:var(--panel);color:var(--txt);border:1px solid var(--line)}
+  .btn-ghost:hover{border-color:var(--teal);color:var(--teal)}
+  .sec-title{font-size:16px;margin:24px 0 12px;display:flex;align-items:center;justify-content:space-between}
+  .sec-title button{font-size:12.5px;font-weight:700;color:var(--lime);background:none;border:none;cursor:pointer}
+  .review{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:13px;margin-bottom:10px}
+  .rv-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .rv-who{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px}
+  .rv-av{width:26px;height:26px;border-radius:50%;background:var(--panel2);display:grid;place-items:center;font-size:11px;font-weight:800;color:var(--teal)}
+  .rv-text{font-size:13px;color:var(--muted);line-height:1.5}
+  .stars{display:flex;gap:2px}.stars svg{width:13px;height:13px;fill:var(--amber)}
+
+  /* ---- Modal ---- */
+  .modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;z-index:1000;padding:20px}
+  .modal.show{display:flex}
+  .modal-card{background:var(--bg2);border:1px solid var(--line);border-radius:22px;width:430px;max-width:100%;
+    padding:28px;box-shadow:0 40px 90px rgba(0,0,0,.6);max-height:90vh;overflow-y:auto;animation:pop .25s cubic-bezier(.3,.9,.3,1)}
+  @keyframes pop{from{transform:scale(.94) translateY(10px);opacity:0}to{transform:none;opacity:1}}
+  .modal-card h3{font-size:22px;margin-bottom:4px}
+  .modal-card .msub{color:var(--muted);font-size:13.5px;margin-bottom:20px}
+  .field{margin-bottom:14px}
+  .field label{display:block;font-size:12.5px;font-weight:700;color:var(--muted);margin-bottom:6px}
+  .field input,.field select{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 13px;
+    color:var(--txt);font-family:'Manrope';font-size:14px;outline:none;transition:.2s}
+  .field input:focus,.field select:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(189,246,60,.12)}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+  /* charging ring */
+  .ring-wrap{display:grid;place-items:center;margin:8px 0 20px;position:relative}
+  .ring{transform:rotate(-90deg)}
+  .ring .bg{stroke:var(--line)}
+  .ring .fg{stroke:var(--lime);stroke-linecap:round;transition:stroke-dashoffset .4s linear;filter:drop-shadow(0 0 8px rgba(189,246,60,.5))}
+  .ring-center{position:absolute;text-align:center}
+  .ring-center .pct{font-family:'Bricolage Grotesque';font-weight:800;font-size:42px;line-height:1}
+  .ring-center .st{color:var(--muted);font-size:12.5px;margin-top:4px}
+  .sess-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px}
+  .sg{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:14px;text-align:center}
+  .sg .v{font-family:'Bricolage Grotesque';font-weight:800;font-size:20px}
+  .sg .v.lime{color:var(--lime)}.sg .l{color:var(--muted);font-size:11px;margin-top:3px}
+
+  .pay-opts{display:flex;gap:10px;margin-bottom:16px}
+  .pay{flex:1;background:var(--panel);border:1.5px solid var(--line);border-radius:13px;padding:14px 10px;text-align:center;cursor:pointer;transition:.18s;font-weight:700;font-size:13px}
+  .pay.on{border-color:var(--lime);background:rgba(189,246,60,.08)}
+  .pay .pi{font-size:22px;margin-bottom:6px}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--lime);color:#0a0f0d;
+    font-weight:700;font-size:14px;padding:14px 22px;border-radius:14px;box-shadow:0 20px 40px rgba(0,0,0,.4);z-index:1100;
+    transition:transform .3s cubic-bezier(.3,.9,.3,1);display:flex;align-items:center;gap:9px}
+  .toast.show{transform:translateX(-50%) translateY(0)}
+  .toast svg{width:18px;height:18px}
+
+  /* ---- Owner ---- */
+  .owner{flex-direction:column;overflow-y:auto;padding:26px 30px 50px}
+  .owner::-webkit-scrollbar{width:9px}.owner::-webkit-scrollbar-thumb{background:var(--line);border-radius:8px}
+  .o-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;flex-wrap:wrap;gap:14px}
+  .o-head h2{font-size:30px}.o-head p{color:var(--muted);margin-top:5px;font-size:14px}.o-head .greet b{color:var(--lime)}
+  .add-btn{font-weight:700;font-size:14px;color:#0a0f0d;background:var(--lime);border:none;border-radius:12px;padding:12px 18px;
+    cursor:pointer;display:flex;align-items:center;gap:8px;transition:.18s;box-shadow:0 0 22px rgba(189,246,60,.3)}
+  .add-btn:hover{background:#cfff52}.add-btn svg{width:17px;height:17px}
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:26px}
+  .stat{background:linear-gradient(160deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:18px;padding:20px;position:relative;overflow:hidden}
+  .stat .ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;margin-bottom:14px;background:rgba(189,246,60,.12);color:var(--lime)}
+  .stat .ic svg{width:20px;height:20px}
+  .stat .v{font-family:'Bricolage Grotesque';font-weight:800;font-size:30px;line-height:1}
+  .stat .l{color:var(--muted);font-size:13px;margin-top:6px}
+  .stat .d{position:absolute;top:18px;right:18px;font-size:12px;font-weight:800;color:var(--lime)}
+  .o-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:20px;align-items:start}
+  .panel{background:var(--bg2);border:1px solid var(--line);border-radius:18px;padding:22px}
+  .panel h3{font-size:18px;margin-bottom:4px}.panel .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
+  .st-row{display:flex;align-items:center;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
+  .st-row:last-child{border-bottom:none}
+  .st-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
+  .st-dot.free{background:var(--lime);box-shadow:0 0 9px var(--lime)}
+  .st-dot.busy{background:var(--amber);box-shadow:0 0 9px var(--amber)}
+  .st-dot.off{background:var(--red)}
+  .st-info{flex:1;min-width:0}.st-info .n{font-weight:700;font-size:14.5px}.st-info .a{color:var(--muted);font-size:12.5px}
+  .price-edit{display:flex;align-items:center;gap:6px;font-size:13px}
+  .price-edit input{width:66px;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--lime);font-family:'Manrope';font-weight:700;text-align:right;outline:none}
+  .price-edit input:focus{border-color:var(--lime)}
+  .st-rev{text-align:right;min-width:62px}.st-rev .num{font-weight:800;font-family:'Bricolage Grotesque';font-size:16px}.st-rev .lbl{color:var(--muted);font-size:11.5px}
+  .toggle{position:relative;width:46px;height:26px;border-radius:30px;background:var(--line);cursor:pointer;transition:.2s;flex-shrink:0}
+  .toggle.on{background:var(--lime)}
+  .toggle::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.2s}
+  .toggle.on::after{left:23px;background:#0a0f0d}
+  .chart{display:flex;align-items:flex-end;gap:10px;height:160px;margin-top:6px}
+  .bar{flex:1;background:linear-gradient(180deg,var(--lime),var(--lime-dim));border-radius:7px 7px 3px 3px;position:relative;transition:.6s cubic-bezier(.2,.8,.2,1);min-height:8px}
+  .bar.peak{background:linear-gradient(180deg,var(--teal),#1aa897)}
+  .bar span{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted)}
+
+  /* ---- Moslashuvchan maket ---- */
+  header{min-width:0}
+  .pill{white-space:nowrap}
+  .acct span{max-width:130px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .modal-card{position:relative}
+  .m-close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:10px;background:var(--panel);
+    border:1px solid var(--line);color:var(--muted);cursor:pointer;display:grid;place-items:center;font-size:20px;line-height:1}
+  .m-close:hover{color:var(--txt);border-color:var(--muted)}
+  .pair{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:12.5px}
+  .pair span{width:110px;flex-shrink:0}.pair span:last-child{text-align:right}.pair select{flex:1;min-width:0}
+  .egrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px;margin-bottom:18px}
+  .map-fab{display:none}
+
+  @media (max-width:1100px){#srcWrap{display:none}}
+  @media (max-width:900px){
+    .sidebar{width:100%;border-right:none}#map{display:none}.stats{grid-template-columns:repeat(2,1fr)}
+    .o-grid{grid-template-columns:1fr}.switcher button span,.acct span{display:none}
+    .acct{padding:5px}
+    body.show-map .sidebar{display:none}
+    body.show-map #map{display:block}
+    .list{padding-bottom:84px}
+    .toast{bottom:84px;max-width:calc(100vw - 24px);pointer-events:none}
+    .toast:not(.show){transform:translateX(-50%) translateY(220px)}
+    .map-fab{display:flex;align-items:center;gap:8px;position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom));
+      transform:translateX(-50%);z-index:500;border:none;border-radius:30px;padding:12px 20px;cursor:pointer;
+      font-weight:800;font-size:14px;color:#0a0f0d;background:var(--lime);box-shadow:0 10px 26px rgba(0,0,0,.55),0 0 22px rgba(189,246,60,.3)}
+    .map-fab svg{width:17px;height:17px}
+    body.show-map .map-fab .i-map,body:not(.show-map) .map-fab .i-list{display:none}
+  }
+  @media (max-width:560px){
+    header{gap:8px;padding:10px 12px}
+    .switcher{margin-left:0}.switcher button{padding:8px 11px}
+    .pill{padding:8px 11px}.cur{display:none}
+    .owner{padding:18px 14px 40px}.o-head h2{font-size:24px}.panel{padding:16px}
+    #ownerStations .st-row{flex-wrap:wrap}#ownerStations .st-info{flex:1 1 calc(100% - 30px)}
+    .modal{padding:12px}.modal-card{padding:22px 18px}
+    .pair span{width:86px;font-size:11.5px}
+  }
+  @media (max-width:480px){body.wallet-on .logo>span{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="logo"><div class="bolt"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg></div><span>Zaryad<b>Go</b></span></div>
+    <div class="switcher">
+      <button class="active" data-view="driver" title="Haydovchi" aria-label="Haydovchi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4.5 8-11a8 8 0 1 0-16 0c0 6.5 8 11 8 11z"/><circle cx="12" cy="11" r="3"/></svg><span>Haydovchi</span></button>
+      <button data-view="owner" title="Stansiya egasi" aria-label="Stansiya egasi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg><span>Stansiya egasi</span></button>
+    </div>
+    <div class="spacer"></div>
+    <div class="pill" id="srcWrap" title="Stansiyalar manbai: 2GIS, 2026-yil oktabr"><span class="pulse"></span> <span id="srcPill">Toshkent · 2GIS</span></div>
+    <div class="pill" id="walletPill" style="cursor:pointer;display:none"><span style="color:var(--lime);font-weight:800">⚡</span> <b id="walletBal" style="color:var(--txt)">50 000</b> <span class="cur">so'm</span></div>
+    <div class="acct" id="acctBtn"><span>Kirish</span><div class="avatar" id="avatar">?</div></div>
+  </header>
+
+  <div id="sessionBar">
+    <span class="live"></span>
+    <span><b>Zaryadlanmoqda</b> · <span id="sbName"></span></span>
+    <span style="color:var(--muted)">·</span>
+    <span id="sbPct" style="font-weight:700"></span>
+    <span class="sb-right" id="sbCost"></span>
+  </div>
+
+  <!-- DRIVER -->
+  <div class="view active" id="driverView">
+    <aside class="sidebar">
+      <div class="side-head"><h2>Toshkent bo'ylab stansiyalar</h2><p id="countTxt">Yuklanmoqda…</p>
+        <p style="font-size:12px;color:var(--teal);margin-top:6px;line-height:1.4">⚡ Joylashuv va operatorlar — 2GIS (2026-yil oktabr). Narxlar: 1900–2850 so'm/kWh.</p>
+        <button class="btn btn-primary" id="smartBtn" style="width:100%;margin-top:12px"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>Aqlli tavsiya (AHP–TOPSIS)</button>
+        <p style="font-size:11.5px;color:var(--muted);margin-top:8px">Telegram bot: <a href="https://t.me/TashEVSmartBot" target="_blank" rel="noopener" style="color:var(--lime)">@TashEVSmartBot</a></p>
+      </div>
+      <div class="search">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="searchBox" placeholder="Manzil yoki nom bo'yicha qidirish…">
+      </div>
+      <div class="filters">
+        <div class="chip on" data-f="all">Barchasi</div>
+        <div class="chip" data-f="free">Navbat kam</div>
+        <div class="chip" data-f="fast">Tezkor (DC)</div>
+        <div class="chip" data-f="gbt">GB/T</div>
+        <div class="chip" data-f="ccs">CCS2</div>
+        <div class="chip" data-f="fav">★ Sevimli</div>
+      </div>
+      <div class="sortrow">Saralash:
+        <select id="sortSel">
+          <option value="dist">Masofa bo'yicha</option>
+          <option value="price">Narx bo'yicha</option>
+          <option value="power">Quvvat bo'yicha</option>
+          <option value="wait">Kutish vaqti bo'yicha</option>
+        </select>
+      </div>
+      <div class="list" id="list"></div>
+    </aside>
+    <div id="map"></div>
+    <button class="map-fab" id="mapFab" type="button">
+      <svg class="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
+      <svg class="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
+      <span id="mapFabTxt">Xarita</span>
+    </button>
+  </div>
+
+  <!-- OWNER -->
+  <div class="view owner" id="ownerView">
+    <div class="o-head">
+      <div class="greet"><h2>Boshqaruv paneli <span style="font-size:12px;color:var(--amber);font-weight:600;vertical-align:middle">· namunaviy (demo) rejim</span></h2><p>Xush kelibsiz, <b>Eldor</b> — sizda <span id="myCount">3</span> ta faol stansiya bor</p></div>
+      <button class="add-btn" id="addBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg> Yangi stansiya</button>
+    </div>
+    <div class="stats" id="ownerStats"></div>
+    <div class="panel" id="energyPanel" style="margin-bottom:20px"></div>
+    <div class="o-grid">
+      <div class="panel"><h3>Mening stansiyalarim</h3><div class="sub">Holat, narx (so'm/kWh) va bugungi daromad</div><div id="ownerStations"></div></div>
+      <div class="panel"><h3>Haftalik daromad</h3><div class="sub">So'nggi 7 kun · ming so'm</div><div class="chart" id="chart"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- Drawer -->
+<div class="scrim" id="scrim"></div>
+<div class="drawer" id="drawer"></div>
+
+<!-- Modals -->
+<div class="modal" id="modal"><div class="modal-card" id="modalCard"></div></div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg><span id="toastMsg"></span></div>
+
+<script>
+// ================= DATA =================
+// Narxlar 2026-yil bozor tarifi: 1800–2400 so'm/kWh (DC tezroq, AC arzonroq).
+// 1-maydan: 300 so'mdan oshgan qism davlat tomonidan qoplanadi (Soliq ilovasi).
+const STATIONS=[
+  // ===== Namunaviy (demo) stansiyalar — faqat "Stansiya egasi" paneli uchun =====
+  {demo:true,id:1,name:"Mega Planet",op:"TOK BOR",addr:"Yunusobod · Amir Temur shoh ko'chasi",lat:41.3528,lng:69.2870,status:"free",power:120,type:"fast",conn:"CCS2",price:2200,ports:"3/4",mine:true,today:842,rating:4.8,reviews:[{u:"Sardor",r:5,t:"Juda tez, 25 daqiqada 80%."},{u:"Nilufar",r:4,t:"Joy ko'p, lekin band bo'lishi mumkin."}],amen:["Kafe","WC","Wi-Fi","24/7"]},
+  {demo:true,id:9,name:"Magic City",op:"EVO Charge",addr:"Mirobod · Bobur ko'chasi",lat:41.3040,lng:69.2790,status:"free",power:75,type:"fast",conn:"CCS2",price:2100,ports:"2/3",mine:true,today:631,rating:4.8,reviews:[{u:"Laziz",r:5,t:"Kechqurun chiroyli, zaryad ham tez."}],amen:["Park","Kafe","WC","24/7"]},
+  {demo:true,id:13,name:"Samarqand Darvoza",op:"EVO Charge",addr:"Shayxontohur · Koratosh ko'chasi",lat:41.3010,lng:69.2330,status:"free",power:90,type:"fast",conn:"CCS2",price:2120,ports:"2/4",mine:true,today:498,rating:4.5,reviews:[{u:"Dilshod",r:5,t:"Savdo markazi ichida, qulay."}],amen:["Savdo","Kafe","WC","Wi-Fi"]},
+  {demo:true,id:14,name:"Chilonzor Plaza",op:"TOK BOR",addr:"Chilonzor · Bunyodkor shoh ko'chasi",lat:41.2755,lng:69.2040,status:"free",power:90,type:"fast",conn:"CCS2",price:2150,ports:"3/4",mine:true,today:412,rating:4.4,reviews:[{u:"Kamola",r:4,t:"Yaxshi joylashuv."}],amen:["Savdo","Kafe","24/7"]},
+  // ===== Real stansiyalar: 2GIS, 2026-yil 21-oktabr =====
+  {"id": 101, "name": "Spectre — Mirobod", "op": "Spectre", "addr": "Mirobod tumani", "lat": 41.300673, "lng": 69.272023, "status": "busy", "power": 90, "type": "fast", "conn": "CCS1, CCS2, GB/T, GB/T AC", "conns": ["CCS1", "CCS2", "GB/T", "GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.97, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001100847604", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 102, "name": "Mustang Energy — Mirzo Ulug‘bek", "op": "Mustang Energy", "addr": "Mirzo Ulug‘bek tumani", "lat": 41.310805, "lng": 69.344572, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2500, "nports": 5, "ports": "5 ta", "lam": 0.82, "mu": 0.25, "est": ["power_kw", "price", "connectors"], "gis": "70000001117011016", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 103, "name": "Tok bor — Shayxontohur", "op": "Tok bor", "addr": "Shayxontohur tumani", "lat": 41.329698, "lng": 69.262747, "status": "busy", "power": 80, "type": "fast", "conn": "CCS2, GB/T", "conns": ["CCS2", "GB/T"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 3.28, "mu": 2.45, "est": ["total_ports"], "gis": "70000001077483989", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 104, "name": "Spectre — Yashnobod", "op": "Spectre", "addr": "Yashnobod tumani", "lat": 41.307729, "lng": 69.283968, "status": "free", "power": 90, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 2.87, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001116731454", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 105, "name": "Quwatt — Chilonzor", "op": "Quwatt", "addr": "Chilonzor tumani", "lat": 41.294692, "lng": 69.221176, "status": "free", "power": 60, "type": "fast", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2500, "nports": 2, "ports": "2 ta", "lam": 1.73, "mu": 1.84, "est": ["power_kw", "price", "total_ports"], "gis": "70000001090289203", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 106, "name": "Spectre — Mirobod 2", "op": "Spectre", "addr": "Mirobod tumani", "lat": 41.281181, "lng": 69.290207, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 0.36, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001094478153", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 107, "name": "Spectre — Mirzo Ulug‘bek", "op": "Spectre", "addr": "Mirzo Ulug‘bek tumani", "lat": 41.329532, "lng": 69.314351, "status": "busy", "power": 90, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.64, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001097364536", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 108, "name": "Spectre — Yakkasaroy", "op": "Spectre", "addr": "Yakkasaroy tumani", "lat": 41.271759, "lng": 69.242362, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 0.28, "mu": 0.25, "est": ["power_kw", "price", "total_ports"], "gis": "70000001111718755", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 109, "name": "Tokbor UZ833", "op": "Tok bor", "addr": "Yashnobod tumani", "lat": 41.299464, "lng": 69.342334, "status": "free", "power": 160, "type": "fast", "conn": "CCS2, GB/T AC", "conns": ["CCS2", "GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.42, "mu": 3.0, "est": ["total_ports"], "gis": "70000001111500069", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 110, "name": "Spectre — Yunusobod", "op": "Spectre", "addr": "Yunusobod tumani", "lat": 41.313709, "lng": 69.27472, "status": "busy", "power": 90, "type": "fast", "conn": "CCS1, CCS2", "conns": ["CCS1", "CCS2"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.31, "mu": 2.76, "est": ["power_kw", "total_ports"], "gis": "70000001100649193", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 111, "name": "Tok bor — Yunusobod", "op": "Tok bor", "addr": "Yunusobod tumani", "lat": 41.318255, "lng": 69.280953, "status": "busy", "power": 120, "type": "fast", "conn": "CCS2, GB/T", "conns": ["CCS2", "GB/T"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 4.38, "mu": 3.0, "est": ["power_kw", "total_ports"], "gis": "70000001065994811", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 112, "name": "PulseEV — Mirzo Ulug‘bek", "op": "PulseEV", "addr": "Mirzo Ulug‘bek tumani", "lat": 41.341952, "lng": 69.334337, "status": "busy", "power": 60, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2500, "nports": 2, "ports": "2 ta", "lam": 2.43, "mu": 1.84, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001113988680", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 113, "name": "Tok bor — Mirobod", "op": "Tok bor", "addr": "Mirobod tumani", "lat": 41.295064, "lng": 69.285358, "status": "busy", "power": 120, "type": "fast", "conn": "CCS2, GB/T", "conns": ["CCS2", "GB/T"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 4.38, "mu": 3.0, "est": ["power_kw", "price", "total_ports"], "gis": "70000001117691434", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 114, "name": "E-One — Yunusobod", "op": "E-One", "addr": "Yunusobod tumani", "lat": 41.330688, "lng": 69.285496, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2500, "nports": 2, "ports": "2 ta", "lam": 0.36, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001110189135", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 115, "name": "Spectre — Mirobod 3", "op": "Spectre", "addr": "Mirobod tumani", "lat": 41.2812, "lng": 69.289353, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 0.32, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001110649998", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 116, "name": "Spectre — Olmazor", "op": "Spectre", "addr": "Olmazor tumani", "lat": 41.335968, "lng": 69.25439, "status": "free", "power": 120, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 1900, "nports": 2, "ports": "2 ta", "lam": 3.0, "mu": 3.0, "est": ["connectors", "total_ports"], "gis": "70000001101284853", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 117, "name": "Tokbor UZ992", "op": "Tok bor", "addr": "Shayxontohur tumani", "lat": 41.324264, "lng": 69.256036, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 0.4, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001111862558", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 118, "name": "Spectre — Olmazor 2", "op": "Spectre", "addr": "Olmazor tumani", "lat": 41.330326, "lng": 69.24407, "status": "free", "power": 90, "type": "fast", "conn": "CCS1, CCS2, CHAdeMO, GB/T, GB/T AC, Tesla, Type 1, Type 2", "conns": ["CCS1", "CCS2", "CHAdeMO", "GB/T", "GB/T AC", "Tesla", "Type 1", "Type 2"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 2.54, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001100359607", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 119, "name": "Spectre — Yakkasaroy 2", "op": "Spectre", "addr": "Yakkasaroy tumani", "lat": 41.289514, "lng": 69.245463, "status": "busy", "power": 90, "type": "fast", "conn": "GB/T, GB/T AC", "conns": ["GB/T", "GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.53, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001103268343", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 120, "name": "Megawatt Energy — Shayxontohur", "op": "Megawatt Energy", "addr": "Shayxontohur tumani", "lat": 41.321399, "lng": 69.248447, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 1999, "nports": 2, "ports": "2 ta", "lam": 0.29, "mu": 0.25, "est": ["total_ports"], "gis": "70000001055815699", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 121, "name": "Spectre — Olmazor 3", "op": "Spectre", "addr": "Olmazor tumani", "lat": 41.348252, "lng": 69.253978, "status": "free", "power": 90, "type": "fast", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 2.76, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001089686780", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 122, "name": "Tok bor — Yakkasaroy", "op": "Tok bor", "addr": "Yakkasaroy tumani", "lat": 41.279683, "lng": 69.269286, "status": "busy", "power": 120, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 4.38, "mu": 3.0, "est": ["total_ports"], "gis": "70000001090560802", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 123, "name": "ND:Charger — Yunusobod", "op": "ND:Charger", "addr": "Yunusobod tumani", "lat": 41.342277, "lng": 69.269288, "status": "busy", "power": 60, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2500, "nports": 2, "ports": "2 ta", "lam": 2.36, "mu": 1.84, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001098511966", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 124, "name": "Spectre — Yakkasaroy 3", "op": "Spectre", "addr": "Yakkasaroy tumani", "lat": 41.287487, "lng": 69.244578, "status": "busy", "power": 90, "type": "fast", "conn": "GB/T, GB/T AC", "conns": ["GB/T", "GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.53, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001103498646", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 125, "name": "PulseEV — Mirzo Ulug‘bek 2", "op": "PulseEV", "addr": "Mirzo Ulug‘bek tumani", "lat": 41.318996, "lng": 69.295246, "status": "free", "power": 60, "type": "fast", "conn": "GB/T, GB/T AC, Tesla", "conns": ["GB/T", "GB/T AC", "Tesla"], "price": 2500, "nports": 2, "ports": "2 ta", "lam": 1.84, "mu": 1.84, "est": ["power_kw", "price", "total_ports"], "gis": "70000001114754638", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 126, "name": "Spectre — Yakkasaroy 4", "op": "Spectre", "addr": "Yakkasaroy tumani", "lat": 41.276632, "lng": 69.255336, "status": "busy", "power": 90, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.31, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001117298189", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 127, "name": "Quwatt — Yashnobod", "op": "Quwatt", "addr": "Yashnobod tumani", "lat": 41.312378, "lng": 69.316566, "status": "busy", "power": 60, "type": "fast", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2500, "nports": 2, "ports": "2 ta", "lam": 2.06, "mu": 1.84, "est": ["power_kw", "price", "total_ports"], "gis": "70000001094788015", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 128, "name": "Spectre — Shayxontohur", "op": "Spectre", "addr": "Shayxontohur tumani", "lat": 41.320196, "lng": 69.226299, "status": "busy", "power": 90, "type": "fast", "conn": "CCS1, CCS2, CHAdeMO, GB/T, GB/T AC, Tesla, Type 1, Type 2", "conns": ["CCS1", "CCS2", "CHAdeMO", "GB/T", "GB/T AC", "Tesla", "Type 1", "Type 2"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.42, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001100733933", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 129, "name": "Spectre — Shayxontohur 2", "op": "Spectre", "addr": "Shayxontohur tumani", "lat": 41.320795, "lng": 69.226597, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 0.35, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001118130841", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 130, "name": "Spectre — Olmazor 4", "op": "Spectre", "addr": "Olmazor tumani", "lat": 41.342849, "lng": 69.228626, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 0.21, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001118474641", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 131, "name": "Spectre — Chilonzor", "op": "Spectre", "addr": "Chilonzor tumani", "lat": 41.300409, "lng": 69.21744, "status": "free", "power": 90, "type": "fast", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 3.04, "mu": 2.76, "est": ["power_kw", "price", "total_ports"], "gis": "70000001090113167", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 132, "name": "Spectre — Yunusobod 2", "op": "Spectre", "addr": "Yunusobod tumani", "lat": 41.351803, "lng": 69.329764, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2250, "nports": 2, "ports": "2 ta", "lam": 0.38, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001097623235", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 133, "name": "Tok bor — Yunusobod 2", "op": "Tok bor", "addr": "Yunusobod tumani", "lat": 41.367427, "lng": 69.290635, "status": "busy", "power": 120, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 4.14, "mu": 3.0, "est": ["total_ports"], "gis": "70000001086865936", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 134, "name": "Tok bor — Mirobod 2", "op": "Tok bor", "addr": "Mirobod tumani", "lat": 41.309893, "lng": 69.272291, "status": "busy", "power": 120, "type": "fast", "conn": "CCS2, GB/T, GB/T AC", "conns": ["CCS2", "GB/T", "GB/T AC"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 4.86, "mu": 3.0, "est": [], "gis": "70000001079130331", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 135, "name": "Tok bor — Yunusobod 3", "op": "Tok bor", "addr": "Yunusobod tumani", "lat": 41.317307, "lng": 69.272312, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 0.33, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001113324850", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 136, "name": "Tok bor — Shayxontohur 3", "op": "Tok bor", "addr": "Shayxontohur tumani", "lat": 41.324342, "lng": 69.266756, "status": "busy", "power": 100, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 4.26, "mu": 3.0, "est": ["total_ports"], "gis": "70000001088192311", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 137, "name": "Tok bor — Mirobod 3", "op": "Tok bor", "addr": "Mirobod tumani", "lat": 41.286528, "lng": 69.274194, "status": "busy", "power": 120, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2850, "nports": 2, "ports": "2 ta", "lam": 5.1, "mu": 3.0, "est": ["total_ports"], "gis": "70000001086865482", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 138, "name": "Megawatt Energy — Yashnobod", "op": "Megawatt Energy", "addr": "Yashnobod tumani", "lat": 41.304409, "lng": 69.288637, "status": "busy", "power": 7, "type": "standard", "conn": "GB/T AC", "conns": ["GB/T AC"], "price": 2555, "nports": 2, "ports": "2 ta", "lam": 0.22, "mu": 0.25, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001082483372", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 139, "name": "Megawatt Energy — Yunusobod", "op": "Megawatt Energy", "addr": "Yunusobod tumani", "lat": 41.312446, "lng": 69.272905, "status": "busy", "power": 120, "type": "fast", "conn": "CCS1, CCS2", "conns": ["CCS1", "CCS2"], "price": 2555, "nports": 2, "ports": "2 ta", "lam": 4.32, "mu": 3.0, "est": ["power_kw", "price", "total_ports"], "gis": "70000001100628974", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 140, "name": "Megawatt Energy — Chilonzor", "op": "Megawatt Energy", "addr": "Chilonzor tumani", "lat": 41.30667, "lng": 69.252378, "status": "free", "power": 120, "type": "fast", "conn": "CCS2, GB/T", "conns": ["CCS2", "GB/T"], "price": 2555, "nports": 2, "ports": "2 ta", "lam": 2.82, "mu": 3.0, "est": ["power_kw", "price", "total_ports"], "gis": "70000001117267856", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 141, "name": "Megawatt Energy — Shayxontohur 2", "op": "Megawatt Energy", "addr": "Shayxontohur tumani", "lat": 41.312859, "lng": 69.240705, "status": "busy", "power": 120, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2555, "nports": 2, "ports": "2 ta", "lam": 3.96, "mu": 3.0, "est": ["power_kw", "price", "connectors", "total_ports"], "gis": "70000001117741792", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 142, "name": "Megawatt Energy — Chilonzor 2", "op": "Megawatt Energy", "addr": "Chilonzor tumani", "lat": 41.294968, "lng": 69.228092, "status": "busy", "power": 60, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2555, "nports": 2, "ports": "2 ta", "lam": 2.32, "mu": 1.84, "est": ["total_ports"], "gis": "70000001086865393", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 143, "name": "Megawatt Energy — Shayxontohur 3", "op": "Megawatt Energy", "addr": "Shayxontohur tumani", "lat": 41.316008, "lng": 69.232226, "status": "busy", "power": 120, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2555, "nports": 2, "ports": "2 ta", "lam": 3.72, "mu": 3.0, "est": ["total_ports"], "gis": "70000001066910411", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 144, "name": "Megawatt Energy — Shayxontohur 4", "op": "Megawatt Energy", "addr": "Shayxontohur tumani", "lat": 41.323021, "lng": 69.25505, "status": "busy", "power": 120, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2555, "nports": 2, "ports": "2 ta", "lam": 4.2, "mu": 3.0, "est": ["total_ports"], "gis": "70000001077131367", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 145, "name": "Megawatt Energy — Mirzo Ulug‘bek", "op": "Megawatt Energy", "addr": "Mirzo Ulug‘bek tumani", "lat": 41.327724, "lng": 69.342839, "status": "free", "power": 200, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2777, "nports": 2, "ports": "2 ta", "lam": 3.0, "mu": 3.0, "est": ["total_ports"], "gis": "70000001079580929", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 146, "name": "Megawatt Energy — Shayxontohur 5", "op": "Megawatt Energy", "addr": "Shayxontohur tumani", "lat": 41.315001, "lng": 69.235069, "status": "busy", "power": 60, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2555, "nports": 2, "ports": "2 ta", "lam": 2.43, "mu": 1.84, "est": ["total_ports"], "gis": "70000001080084643", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []},
+  {"id": 147, "name": "Megawatt Energy — Yunusobod 2", "op": "Megawatt Energy", "addr": "Yunusobod tumani", "lat": 41.333376, "lng": 69.287246, "status": "busy", "power": 200, "type": "fast", "conn": "GB/T", "conns": ["GB/T"], "price": 2777, "nports": 2, "ports": "2 ta", "lam": 4.56, "mu": 3.0, "est": ["total_ports"], "gis": "70000001080166535", "mine": false, "today": 0, "rating": null, "reviews": [], "amen": []}
+];
+const STAT_LABEL={free:"Navbat kam",busy:"Navbat bor",off:"Ishlamayapti"};
+const STAT_CLS={free:"s-free",busy:"s-busy",off:"s-off"};
+let nextId=1000;
+
+// ===== Energiya ta'minoti ma'lumotlari (har bir stansiyaga) =====
+STATIONS.filter(s=>s.demo).forEach(s=>{
+  s.src = (s.id%3===0) ? "Quyosh + Tarmoq" : "Elektr tarmog'i";
+  s.renewable = (s.id%3===0) ? 30+(s.id*7%30) : 6+(s.id*3%12);   // % qayta tiklanuvchi
+  s.gridLoad = 42+(s.id*13%48);                                   // tarmoq yuklamasi %
+  s.energyToday = s.today ? Math.round(s.today*1000/s.price) : 80+(s.id*9%200); // kWh
+});
+let peakMode=false; // tig'iz vaqt rejimi (EV-Power masofadan boshqaruvi simulyatsiyasi)
+function availPower(s){ return (peakMode && s.type==='fast') ? Math.min(s.power,60) : s.power; }
+
+// state
+let user={loggedIn:false,name:"",battery:32};
+let favs=new Set();
+const WALLET_ON=false;        // hamyon/balans bo'limi vaqtincha yashirilgan — qaytarish uchun true
+let wallet=50000;            // hamyon balansi (so'm)
+let activeFilter='all',selId=null,query='',sortBy='dist';
+let me={lat:41.3050,lng:69.2650};
+let session=null;
+
+// ===== Doimiy saqlash ("mini-baza") — mavjud bo'lsa storage, aks holda xotirada =====
+const DB={
+  async load(){
+    try{ if(window.storage){
+      const r=await window.storage.get('quvvat:state');
+      if(r&&r.value){const d=JSON.parse(r.value);
+        if(d.wallet!=null)wallet=d.wallet;
+        if(d.favs)favs=new Set(d.favs);
+        if(Array.isArray(d.custom))d.custom.forEach(s=>{if(!STATIONS.find(x=>x.id===s.id)){STATIONS.push(s);makeMarker(s);nextId=Math.max(nextId,s.id+1);}});
+        return true;
+      }
+    }}catch(e){}
+    return false;
+  },
+  async save(){
+    try{ if(window.storage){
+      const custom=STATIONS.filter(s=>s.custom);
+      await window.storage.set('quvvat:state',JSON.stringify({wallet,favs:[...favs],custom}));
+    }}catch(e){}
+  }
+};
+
+// ================= MAP =================
+const map=L.map('map',{zoomControl:false}).setView([41.305,69.265],12);
+L.control.zoom({position:'bottomright'}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',{attribution:'Tiles &copy; Esri',maxZoom:16}).addTo(map);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(map);
+const boltSVG='<svg viewBox="0 0 24 24" fill="#0a0f0d"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
+const markers={};
+function iconFor(s){return L.divIcon({className:'',html:`<div class="mk ${s.status}">${boltSVG}</div>`,iconSize:[38,38],iconAnchor:[19,38],popupAnchor:[0,-36]});}
+function makeMarker(s){
+  const m=L.marker([s.lat,s.lng],{icon:iconFor(s)}).addTo(map);
+  m.on('click',()=>openDrawer(s.id));
+  markers[s.id]=m;
+}
+STATIONS.filter(s=>!s.demo).forEach(makeMarker);
+// Xarita yashirin bo'lganda (tor ekran) uning o'lchami 0 — bunda fitBounds/flyTo NaN beradi.
+// Shuning uchun xarita faqat ko'rinib turganda harakatlantiriladi, aks holda nuqta eslab qolinadi.
+let mapReady=false,pendingFocus=null;
+function mapVisible(){const el=map.getContainer();return el.offsetWidth>0&&el.offsetHeight>0;}
+function syncMap(){
+  if(!mapVisible())return;
+  map.invalidateSize();
+  if(pendingFocus){map.setView(pendingFocus,14);pendingFocus=null;mapReady=true;}
+  else if(!mapReady){map.fitBounds(STATIONS.filter(s=>!s.demo).map(s=>[s.lat,s.lng]),{padding:[50,50]});mapReady=true;}
+}
+function focusMap(lat,lng){
+  if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
+  if(mapVisible()){map.invalidateSize();map.flyTo([lat,lng],14,{duration:.6});mapReady=true;}
+  else pendingFocus=[lat,lng];
+}
+syncMap();
+if(window.ResizeObserver)new ResizeObserver(syncMap).observe(map.getContainer());
+window.addEventListener('resize',syncMap);
+// telefon/planshet: Ro'yxat <-> Xarita
+document.getElementById('mapFab').onclick=()=>{
+  const on=document.body.classList.toggle('show-map');
+  document.getElementById('mapFabTxt').textContent=on?"Ro'yxat":"Xarita";
+  syncMap();
+};
+// draggable "me" marker
+const meMarker=L.marker([me.lat,me.lng],{icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[22,22],iconAnchor:[11,11]}),draggable:true}).addTo(map);
+meMarker.bindTooltip("Mening joylashuvim (suring)",{direction:'top',offset:[0,-12]});
+meMarker.on('dragend',e=>{const p=e.target.getLatLng();me.lat=p.lat;me.lng=p.lng;renderList();});
+
+// distance
+function dist(s){
+  const R=6371,dLat=(s.lat-me.lat)*Math.PI/180,dLng=(s.lng-me.lng)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(me.lat*Math.PI/180)*Math.cos(s.lat*Math.PI/180)*Math.sin(dLng/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+// ================= NAVBAT MODELI (M/M/c), (2.27)–(2.30) =================
+function fact(n){let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+function mmc(lam,mu,c){const rho=lam/mu,a=rho/c;if(a>=1)return{Pw:1,Tw:240,a};
+  let s0=0;for(let n=0;n<c;n++)s0+=rho**n/fact(n);const tail=rho**c/(fact(c)*(1-a));const Pw=tail/(s0+tail);
+  return{Pw,Tw:Pw/(mu*c*(1-a))*60,a};}
+function waitMin(s){return (s.lam&&s.mu)?mmc(s.lam,s.mu,s.nports).Tw:0;}
+const EST={power_kw:'quvvat',price:'narx',connectors:'ulagich',total_ports:'portlar soni'};
+
+// ================= VIEW SWITCH =================
+const btns=document.querySelectorAll('.switcher button');
+const views={driver:document.getElementById('driverView'),owner:document.getElementById('ownerView')};
+btns.forEach(b=>b.onclick=()=>{btns.forEach(x=>x.classList.remove('active'));b.classList.add('active');
+  Object.values(views).forEach(v=>v.classList.remove('active'));views[b.dataset.view].classList.add('active');
+  if(b.dataset.view==='driver')setTimeout(syncMap,60);});
+
+// ================= DRIVER LIST =================
+const listEl=document.getElementById('list');
+function passes(s){
+  if(s.demo)return false;
+  if(query&&!(s.name.toLowerCase().includes(query)||s.addr.toLowerCase().includes(query)))return false;
+  if(activeFilter==='free')return waitMin(s)<12;
+  if(activeFilter==='fast')return s.type==='fast';
+  if(activeFilter==='ccs')return (s.conns||[s.conn]).includes('CCS2');
+  if(activeFilter==='gbt')return (s.conns||[s.conn]).includes('GB/T');
+  if(activeFilter==='fav')return favs.has(s.id);
+  return true;
+}
+function sortFn(a,b){
+  if(sortBy==='dist')return dist(a)-dist(b);
+  if(sortBy==='price')return a.price-b.price;
+  if(sortBy==='power')return b.power-a.power;
+  if(sortBy==='wait')return waitMin(a)-waitMin(b);
+}
+const starSVG='<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5 4.8 1.3 7L12 17.8 5.4 21l1.3-7-5-4.8 7-.8z"/></svg>';
+function renderList(){
+  const items=STATIONS.filter(passes).sort(sortFn);
+  document.getElementById('countTxt').textContent=`${items.length} ta stansiya · siz tanlagan tartibda`;
+  listEl.innerHTML=items.map(s=>`
+    <div class="card ${s.id===selId?'sel':''}" data-id="${s.id}">
+      <div class="card-top">
+        <div><div class="card-name">${s.name}</div><div class="card-addr">${s.op||'—'} · ${s.addr}</div></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <div class="status ${STAT_CLS[s.status]}">${STAT_LABEL[s.status]}</div>
+          <button class="fav ${favs.has(s.id)?'on':''}" data-fav="${s.id}" aria-label="Sevimlilarga qo'shish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A4.5 4.5 0 0 0 12 6 4.5 4.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7z"/></svg></button>
+        </div>
+      </div>
+      <div class="meta">
+        <div class="tag dist"><b>${dist(s).toFixed(1)}</b> km</div>
+        <div class="tag"><b>${s.power}</b> kW</div>
+        <div class="tag">${s.conn}</div>
+        <div class="tag price"><b>${s.price.toLocaleString('ru')}</b> so'm</div>
+        ${s.rating?`<div class="rate">${starSVG}${s.rating}</div>`:`<div class="tag" title="M/M/c navbat modeli bo'yicha">⏳ <b>${waitMin(s).toFixed(0)}</b> daq</div>`}
+      </div>
+      <div class="card-foot">
+        <div class="ports">Portlar: <b>${s.ports}</b>${s.est&&s.est.length?' · <span style="color:var(--amber)" title="Ba\'zi qiymatlar taxminiy">≈</span>':''}</div>
+        <button class="go" data-go="${s.id}">Batafsil <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      </div>
+    </div>`).join('')||`<p style="color:var(--muted);padding:20px;text-align:center">Hech narsa topilmadi</p>`;
+  listEl.querySelectorAll('.card').forEach(c=>c.onclick=e=>{if(e.target.closest('[data-go],[data-fav]'))return;openDrawer(+c.dataset.id);});
+  listEl.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>openDrawer(+b.dataset.go));
+  listEl.querySelectorAll('[data-fav]').forEach(b=>b.onclick=()=>{const id=+b.dataset.fav;favs.has(id)?favs.delete(id):favs.add(id);DB.save();renderList();});
+}
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>{document.querySelectorAll('.chip').forEach(x=>x.classList.remove('on'));c.classList.add('on');activeFilter=c.dataset.f;renderList();});
+document.getElementById('searchBox').oninput=e=>{query=e.target.value.toLowerCase().trim();renderList();};
+document.getElementById('sortSel').onchange=e=>{sortBy=e.target.value;renderList();};
+
+// ================= DRAWER =================
+const drawer=document.getElementById('drawer'),scrim=document.getElementById('scrim');
+function closeDrawer(){drawer.classList.remove('show');scrim.classList.remove('show');}
+scrim.onclick=closeDrawer;
+function starsRow(n){let s='';for(let i=1;i<=5;i++)s+=`<svg viewBox="0 0 24 24" style="${i<=n?'':'opacity:.25'}"><path d="M12 2l3 6.5 7 .8-5 4.8 1.3 7L12 17.8 5.4 21l1.3-7-5-4.8 7-.8z"/></svg>`;return `<div class="stars">${s}</div>`;}
+function openDrawer(id){
+  selId=id;renderList();
+  const s=STATIONS.find(x=>x.id===id);
+  focusMap(s.lat,s.lng);
+  const canCharge=s.status!=='off';
+  drawer.innerHTML=`
+    <div class="dr-hero">
+      <button class="dr-close" id="drClose" aria-label="Yopish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+      <div><h2>${s.name}</h2><div class="dr-addr">${s.op||'—'} · ${s.addr}</div></div>
+    </div>
+    <div class="dr-body">
+      <div class="dr-stats">
+        <div class="ds"><div class="v" style="color:var(--lime)">${s.power}</div><div class="l">kW quvvat</div></div>
+        <div class="ds"><div class="v">${dist(s).toFixed(1)}</div><div class="l">km uzoqlikda</div></div>
+        <div class="ds"><div class="v" style="color:var(--amber)">${waitMin(s).toFixed(0)}</div><div class="l">daq kutish</div></div>
+      </div>
+      <div class="dr-row"><span>Navbat (M/M/c modeli)</span><b style="color:${waitMin(s)<12?'var(--lime)':'var(--amber)'}">~${waitMin(s).toFixed(0)} daq · band bo'lish ehtimoli ${s.lam?Math.round(mmc(s.lam,s.mu,s.nports).Pw*100):0}%</b></div>
+      <div class="dr-row"><span>Konnektor</span><b>${s.conn}</b></div>
+      <div class="dr-row"><span>Narx</span><b style="color:var(--lime)">${s.price.toLocaleString('ru')} so'm / kWh</b></div>
+      
+      <div class="dr-row"><span>Portlar</span><b>${s.ports}</b></div>
+      ${s.src?`<div class="dr-row"><span>Energiya manbai</span><b>${s.src}</b></div>`:''}
+      ${s.gis?`<div class="dr-row"><span>Manba</span><b><a href="https://2gis.uz/tashkent/firm/${s.gis}" target="_blank" rel="noopener" style="color:var(--teal)">2GIS</a></b></div>`:''}
+      ${s.est&&s.est.length?`<div class="dr-row"><span>Taxminiy qiymatlar</span><b style="color:var(--amber)">${s.est.map(e=>EST[e]||e).join(', ')} — operator o'rtachasi</b></div>`:''}
+      ${peakMode&&s.type==='fast'?`<div class="dr-row"><span>⚠ Tig'iz vaqt</span><b style="color:var(--amber)">Quvvat ${availPower(s)} kW gacha cheklangan</b></div>`:''}
+      ${s.amen.length?`<div class="dr-amen">${s.amen.map(a=>`<span class="amen">${a}</span>`).join('')}</div>`:''}
+      <div class="dr-actions">
+        <button class="btn btn-primary" id="chargeBtn" ${canCharge?'':'disabled'}><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>${canCharge?'Zaryadlash (simulyatsiya)':'Ishlamayapti'}</button>
+        <button class="btn btn-ghost" id="bookBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Band qilish</button>
+      </div>
+      <button class="btn btn-ghost" id="navBtn" style="width:100%"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l19-9-9 19-2-8-8-2z"/></svg>Yo'nalishni ochish (navigatsiya)</button>
+      <div class="sec-title">Sharhlar <button id="addRev">+ Sharh qoldirish</button></div>
+      <div id="revList">${s.reviews.map(rv=>`
+        <div class="review"><div class="rv-top"><div class="rv-who"><div class="rv-av">${rv.u[0]}</div>${rv.u}</div>${starsRow(rv.r)}</div><div class="rv-text">${rv.t}</div></div>`).join('')}</div>
+    </div>`;
+  drawer.classList.add('show');scrim.classList.add('show');
+  document.getElementById('drClose').onclick=closeDrawer;
+  document.getElementById('navBtn').onclick=()=>window.open(`https://www.google.com/maps/dir/?api=1&destination=${s.lat},${s.lng}&travelmode=driving`,'_blank');
+  document.getElementById('bookBtn').onclick=()=>requireLogin(()=>openBooking(s));
+  const cb=document.getElementById('chargeBtn');if(cb&&canCharge)cb.onclick=()=>requireLogin(()=>openCharge(s));
+  document.getElementById('addRev').onclick=()=>requireLogin(()=>openReview(s));
+}
+
+// ================= MODALS =================
+const modal=document.getElementById('modal'),modalCard=document.getElementById('modalCard');
+function closeModal(){modal.classList.remove('show');}
+modal.onclick=e=>{if(e.target===modal)closeModal();};
+// har bir oynaga yopish (×) tugmasi; Esc — avval oynani, keyin yon panelni yopadi
+new MutationObserver(()=>{
+  if(modalCard.querySelector('.m-close'))return;
+  const b=document.createElement('button');b.className='m-close';b.type='button';b.setAttribute('aria-label','Yopish');b.textContent='×';
+  b.onclick=closeModal;modalCard.prepend(b);
+}).observe(modalCard,{childList:true});
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  if(modal.classList.contains('show'))closeModal();
+  else if(drawer.classList.contains('show'))closeDrawer();
+});
+
+// login
+function openLogin(after){
+  modalCard.innerHTML=`
+    <h3>Hisobga kirish</h3><div class="msub">Zaryadlash va band qilish uchun kiring</div>
+    <div class="field"><label>Ism</label><input id="liName" placeholder="Ismingiz" value="${user.name||''}"></div>
+    <div class="field"><label>Telefon raqami</label><input id="liPhone" placeholder="+998 90 123 45 67"></div>
+    <div class="field"><label>Avtomobil modeli</label>
+      <select id="liCar">${VEHICLES.map(v=>`<option>${v.name}</option>`).join('')}<option>Boshqa</option></select></div>
+    <button class="btn btn-primary" id="liGo" style="width:100%;margin-top:6px">Kirish</button>`;
+  modal.classList.add('show');
+  document.getElementById('liGo').onclick=()=>{
+    const n=document.getElementById('liName').value.trim()||"Mehmon";
+    user.loggedIn=true;user.name=n;user.car=document.getElementById('liCar').value;
+    document.getElementById('avatar').textContent=n[0].toUpperCase();
+    document.querySelector('#acctBtn span').textContent=n;
+    closeModal();toast(`Xush kelibsiz, ${n}!`);
+    if(after)after();
+  };
+}
+function requireLogin(fn){user.loggedIn?fn():openLogin(fn);}
+document.getElementById('acctBtn').onclick=()=>openLogin();
+
+// booking
+function openBooking(s){
+  const slots=["Hozir","30 daqiqadan so'ng","1 soatdan so'ng","2 soatdan so'ng","Bugun 18:00"];
+  modalCard.innerHTML=`
+    <h3>Port band qilish</h3><div class="msub">${s.name} · ${s.conn} · ${s.power} kW</div>
+    <div class="field"><label>Vaqtni tanlang</label><select id="bkSlot">${slots.map(x=>`<option>${x}</option>`).join('')}</select></div>
+    <div class="field"><label>Taxminiy davomiylik</label><select id="bkDur"><option>30 daqiqa</option><option>45 daqiqa</option><option>1 soat</option></select></div>
+    <button class="btn btn-primary" id="bkGo" style="width:100%;margin-top:6px">Tasdiqlash</button>`;
+  modal.classList.add('show');
+  document.getElementById('bkGo').onclick=()=>{const t=document.getElementById('bkSlot').value;closeModal();toast(`Band qilindi: ${s.name} · ${t}`);};
+}
+
+// review
+function openReview(s){
+  let chosen=5;
+  modalCard.innerHTML=`
+    <h3>Sharh qoldirish</h3><div class="msub">${s.name}</div>
+    <div class="field"><label>Bahoyingiz</label><div id="rvStars" style="display:flex;gap:6px;cursor:pointer">
+      ${[1,2,3,4,5].map(i=>`<svg data-s="${i}" viewBox="0 0 24 24" style="width:32px;height:32px;fill:var(--amber)"><path d="M12 2l3 6.5 7 .8-5 4.8 1.3 7L12 17.8 5.4 21l1.3-7-5-4.8 7-.8z"/></svg>`).join('')}</div></div>
+    <div class="field"><label>Fikringiz</label><input id="rvText" placeholder="Tajribangiz haqida yozing…"></div>
+    <button class="btn btn-primary" id="rvGo" style="width:100%;margin-top:6px">Yuborish</button>`;
+  modal.classList.add('show');
+  const stars=modalCard.querySelectorAll('#rvStars svg');
+  const paint=()=>stars.forEach(st=>st.style.opacity=(+st.dataset.s<=chosen)?1:.25);paint();
+  stars.forEach(st=>st.onclick=()=>{chosen=+st.dataset.s;paint();});
+  document.getElementById('rvGo').onclick=()=>{
+    const t=document.getElementById('rvText').value.trim()||"Yaxshi stansiya.";
+    s.reviews.unshift({u:user.name,r:chosen,t});
+    s.rating=+(s.reviews.reduce((a,r)=>a+r.r,0)/s.reviews.length).toFixed(1);
+    closeModal();openDrawer(s.id);toast("Sharhingiz uchun rahmat!");
+  };
+}
+
+// ================= CHARGING SESSION =================
+let payMethod='card';
+function openCharge(s){
+  payMethod='card';
+  modalCard.innerHTML=`
+    <h3>Zaryadlash</h3><div class="msub">${s.name} · ${s.power} kW · ${s.price.toLocaleString('ru')} so'm/kWh</div>
+    <div class="field"><label>Joriy zaryad: <b id="curB" style="color:var(--lime)">${user.battery}%</b></label>
+      <input type="range" id="startPct" min="5" max="70" value="${user.battery}" style="width:100%"></div>
+    <div class="field"><label>Qaysi darajagacha?</label>
+      <select id="targetPct"><option value="80">80% (tavsiya etiladi)</option><option value="90">90%</option><option value="100">100%</option></select></div>
+    <div class="field"><label>To'lov usuli</label>
+      <div class="pay-opts">
+        <div class="pay on" data-pay="card"><div class="pi">💳</div>Karta</div>
+        <div class="pay" data-pay="qr"><div class="pi">▦</div>QR / Click</div>
+        ${WALLET_ON?'<div class="pay" data-pay="wallet"><div class="pi">⚡</div>Hamyon</div>':''}
+      </div></div>
+    <button class="btn btn-primary" id="startGo" style="width:100%"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>Zaryadlashni boshlash</button>`;
+  modal.classList.add('show');
+  document.getElementById('startPct').oninput=e=>{user.battery=+e.target.value;document.getElementById('curB').textContent=user.battery+'%';};
+  modalCard.querySelectorAll('.pay').forEach(p=>p.onclick=()=>{modalCard.querySelectorAll('.pay').forEach(x=>x.classList.remove('on'));p.classList.add('on');payMethod=p.dataset.pay;});
+  document.getElementById('startGo').onclick=()=>{
+    const start=+document.getElementById('startPct').value;
+    const target=+document.getElementById('targetPct').value;
+    startSession(s,start,target);
+  };
+}
+
+function startSession(s,start,target){
+  closeDrawer();
+  const battKWh=(VEHICLES.find(v=>v.name===user.car)||{c:60}).c;
+  session={s,pct:start,target,kWh:0,sec:0,price:s.price};
+  // set station busy
+  if(s.status==='free'){s.status='busy';markers[s.id]&&markers[s.id].setIcon(iconFor(s));renderList();}
+  const C=2*Math.PI*52;
+  modalCard.innerHTML=`
+    <h3>Zaryadlanmoqda…</h3><div class="msub">${s.name}</div>
+    <div class="ring-wrap">
+      <svg class="ring" width="150" height="150"><circle class="bg" cx="75" cy="75" r="52" fill="none" stroke-width="11"/>
+      <circle class="fg" id="ringFg" cx="75" cy="75" r="52" fill="none" stroke-width="11" stroke-dasharray="${C}" stroke-dashoffset="${C}"/></svg>
+      <div class="ring-center"><div class="pct" id="csPct">${start}%</div><div class="st">→ ${target}%</div></div>
+    </div>
+    <div class="sess-grid">
+      <div class="sg"><div class="v lime" id="csKwh">0.0</div><div class="l">kWh</div></div>
+      <div class="sg"><div class="v" id="csCost">0</div><div class="l">so'm</div></div>
+      <div class="sg"><div class="v" id="csTime">0:00</div><div class="l">vaqt</div></div>
+    </div>
+    <button class="btn btn-ghost" id="stopGo" style="width:100%;border-color:var(--red);color:var(--red)">Zaryadlashni to'xtatish</button>`;
+  modal.classList.add('show');
+  document.getElementById('sessionBar').classList.add('show');
+  document.getElementById('sbName').textContent=s.name;
+  const ringFg=document.getElementById('ringFg');
+  const tick=()=>{
+    if(!session)return;
+    const inc=Math.max(1.2,(availPower(s)/120)*2.2)*(Math.random()*.4+.8);
+    session.pct=Math.min(session.target,session.pct+inc);
+    const added=(inc/100)*battKWh;
+    session.kWh+=added;session.sec+=3;
+    session.cost=Math.round(session.kWh*session.price);
+    user.battery=Math.round(session.pct);
+    // update modal if open
+    const off=C-(session.pct/100)*C;ringFg.style.strokeDashoffset=off;
+    const csPct=document.getElementById('csPct');
+    if(csPct){csPct.textContent=Math.round(session.pct)+'%';
+      document.getElementById('csKwh').textContent=session.kWh.toFixed(1);
+      document.getElementById('csCost').textContent=session.cost.toLocaleString('ru');
+      const m=Math.floor(session.sec/60),ss=String(session.sec%60).padStart(2,'0');
+      document.getElementById('csTime').textContent=`${m}:${ss}`;}
+    // banner
+    document.getElementById('sbPct').textContent=Math.round(session.pct)+'%';
+    document.getElementById('sbCost').textContent=session.cost.toLocaleString('ru')+" so'm";
+    if(session.pct>=session.target){clearInterval(session.timer);finishSession();}
+  };
+  session.timer=setInterval(tick,500);
+  document.getElementById('stopGo').onclick=()=>{clearInterval(session.timer);finishSession();};
+}
+
+function finishSession(){
+  const {s,kWh,cost,pct,sec}=session;
+  const co2=(kWh*0.42).toFixed(1); // kg CO2 saved vs petrol-ish
+  // free the station again
+  if(s.status==='busy'){s.status='free';markers[s.id]&&markers[s.id].setIcon(iconFor(s));renderList();}
+  document.getElementById('sessionBar').classList.remove('show');
+  const m=Math.floor(sec/60),ss=String(sec%60).padStart(2,'0');
+  modalCard.innerHTML=`
+    <div style="text-align:center;margin-bottom:8px"><div style="width:60px;height:60px;margin:0 auto 14px;border-radius:50%;background:rgba(189,246,60,.15);display:grid;place-items:center">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--lime)" stroke-width="3" style="width:30px;height:30px"><path d="M20 6 9 17l-5-5"/></svg></div>
+      <h3>Zaryadlash yakunlandi</h3><div class="msub">${s.name}</div></div>
+    <div class="dr-row"><span>Yakuniy zaryad</span><b style="color:var(--lime)">${Math.round(pct)}%</b></div>
+    <div class="dr-row"><span>Berilgan energiya</span><b>${kWh.toFixed(1)} kWh</b></div>
+    <div class="dr-row"><span>Davomiylik</span><b>${m} daq ${ss} s</b></div>
+    <div class="dr-row"><span>Tejalgan CO₂</span><b style="color:var(--teal)">${co2} kg</b></div>
+    <div class="dr-row" style="border:none"><span style="font-size:16px">Jami to'lov</span><b style="font-size:22px;color:var(--lime);font-family:'Bricolage Grotesque'">${cost.toLocaleString('ru')} so'm</b></div>
+    <button class="btn btn-primary" id="recGo" style="width:100%;margin-top:14px">${WALLET_ON?"Yopish va to'lash":"Yopish"}</button>`;
+  modal.classList.add('show');
+  document.getElementById('recGo').onclick=()=>{
+    if(!WALLET_ON){closeModal();return;}
+    if(wallet>=cost){wallet-=cost;updateWallet();DB.save();closeModal();toast(`Hamyondan to'landi: ${cost.toLocaleString('ru')} so'm`);}
+    else{closeModal();toast(`Hamyonda mablag' yetarli emas — to'ldiring`);openTopup();}
+  };
+  session=null;
+}
+document.getElementById('sessionBar').onclick=()=>{if(session)modal.classList.add('show');};
+
+// ================= TOAST =================
+let toastT;
+function toast(msg){const t=document.getElementById('toast');document.getElementById('toastMsg').textContent=msg;
+  t.classList.add('show');clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('show'),2600);}
+
+// ================= OWNER =================
+function renderOwnerStats(){
+  const mine=STATIONS.filter(s=>s.mine);
+  const totalToday=mine.reduce((a,s)=>a+(s.today||0),0);
+  document.getElementById('myCount').textContent=mine.filter(s=>s.status!=='off').length;
+  const data=[
+    {ic:'<path d="M12 2v20M2 12h20"/>',v:mine.length,l:"Stansiyalar",d:""},
+    {ic:'<path d="M3 3v18h18"/><path d="m7 14 4-4 3 3 5-6"/>',v:totalToday.toLocaleString('ru')+"k",l:"Bugungi daromad (so'm)",d:"+12%"},
+    {ic:'<circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>',v:"148",l:"Bugungi sessiyalar",d:"+8%"},
+    {ic:'<path d="M22 12h-4l-3 9L9 3l-3 9H2"/>',v:"2.1 MWh",l:"Berilgan energiya",d:"+5%"},
+  ];
+  document.getElementById('ownerStats').innerHTML=data.map(s=>`
+    <div class="stat">${s.d?`<div class="d">${s.d}</div>`:''}
+      <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">${s.ic}</svg></div>
+      <div class="v">${s.v}</div><div class="l">${s.l}</div></div>`).join('');
+}
+function renderOwnerStations(){
+  const mine=STATIONS.filter(s=>s.mine);
+  document.getElementById('ownerStations').innerHTML=mine.map(s=>`
+    <div class="st-row">
+      <div class="st-dot ${s.status}"></div>
+      <div class="st-info"><div class="n">${s.name}</div><div class="a">${s.addr} · ${s.power} kW · ${s.conn}</div></div>
+      <div class="price-edit"><input type="number" value="${s.price}" data-price="${s.id}"><span style="color:var(--muted)">so'm</span></div>
+      <div class="st-rev"><div class="num">${(s.today||0).toLocaleString('ru')}k</div><div class="lbl">bugun</div></div>
+      <div class="toggle ${s.status!=='off'?'on':''}" data-toggle="${s.id}"></div>
+    </div>`).join('');
+  document.querySelectorAll('[data-toggle]').forEach(t=>t.onclick=()=>{
+    const s=STATIONS.find(x=>x.id===+t.dataset.toggle);
+    s.status=s.status==='off'?'free':'off';
+    markers[s.id]&&markers[s.id].setIcon(iconFor(s));
+    renderOwnerStations();renderOwnerStats();renderList();
+  });
+  document.querySelectorAll('[data-price]').forEach(inp=>inp.onchange=()=>{
+    const s=STATIONS.find(x=>x.id===+inp.dataset.price);s.price=+inp.value||s.price;
+    renderList();toast(`${s.name} narxi yangilandi`);
+  });
+}
+function openAddStation(){
+  modalCard.innerHTML=`
+    <h3>Yangi stansiya qo'shish</h3><div class="msub">Tarmoqqa yangi zaryadlash nuqtasi</div>
+    <div class="field"><label>Nomi</label><input id="asName" placeholder="masalan, Yangi Hayot Plaza"></div>
+    <div class="field"><label>Manzil</label><input id="asAddr" placeholder="Tuman, ko'cha"></div>
+    <div class="row2">
+      <div class="field"><label>Quvvat (kW)</label><input id="asPow" type="number" value="60"></div>
+      <div class="field"><label>Narx (so'm/kWh)</label><input id="asPrice" type="number" value="2000"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Konnektor</label><select id="asConn"><option>CCS2</option><option>Type 2</option><option>CHAdeMO</option><option>GB/T</option></select></div>
+      <div class="field"><label>Portlar soni</label><input id="asPorts" type="number" value="3"></div>
+    </div>
+    <div class="field"><label>Energiya manbai</label><select id="asSrc"><option>Elektr tarmog'i</option><option>Quyosh + Tarmoq</option></select></div>
+    <button class="btn btn-primary" id="asGo" style="width:100%;margin-top:6px">Qo'shish</button>`;
+  modal.classList.add('show');
+  document.getElementById('asGo').onclick=()=>{
+    const name=document.getElementById('asName').value.trim()||"Yangi stansiya";
+    const pow=+document.getElementById('asPow').value||60;
+    const s={custom:true,id:nextId++,name,op:"Mening tarmog'im",addr:document.getElementById('asAddr').value.trim()||"Toshkent",
+      lat:41.30+Math.random()*.08-.04,lng:69.26+Math.random()*.08-.04,status:"free",power:pow,
+      type:pow>=50?"fast":"standard",conn:document.getElementById('asConn').value,
+      price:+document.getElementById('asPrice').value||2000,
+      ports:`${document.getElementById('asPorts').value}/${document.getElementById('asPorts').value}`,
+      mine:true,today:0,rating:5.0,reviews:[],amen:["Yangi"],
+      src:document.getElementById('asSrc').value,renewable:document.getElementById('asSrc').value.includes('Quyosh')?45:8,gridLoad:50,energyToday:0};
+    STATIONS.push(s);makeMarker(s);
+    renderOwnerStations();renderOwnerStats();renderList();
+    DB.save();
+    closeModal();toast(`"${name}" qo'shildi!`);
+    focusMap(s.lat,s.lng);
+  };
+}
+document.getElementById('addBtn').onclick=openAddStation;
+
+// chart
+function renderChart(){
+  const totalToday=STATIONS.filter(s=>s.mine).reduce((a,s)=>a+(s.today||0),0);
+  const week=[420,560,610,490,720,880,Math.max(60,totalToday/10|0)];
+  const days=['Du','Se','Cho','Pa','Ju','Sha','Ya'],maxV=Math.max(...week);
+  document.getElementById('chart').innerHTML=week.map((v,i)=>`<div class="bar ${v===maxV?'peak':''}" style="height:0" data-h="${(v/maxV*100).toFixed(0)}"><span>${days[i]}</span></div>`).join('');
+  setTimeout(()=>document.querySelectorAll('.bar').forEach(b=>b.style.height=b.dataset.h+'%'),120);
+}
+
+// init
+// ================= WALLET & TO'LOV (Click/Payme oqimi) =================
+function updateWallet(){document.getElementById('walletBal').textContent=wallet.toLocaleString('ru');}
+let topMethod='click';
+function openTopup(){
+  topMethod='click';
+  modalCard.innerHTML=`
+    <h3>Hamyonni to'ldirish</h3><div class="msub">Joriy balans: <b style="color:var(--lime)">${wallet.toLocaleString('ru')} so'm</b></div>
+    <div class="field"><label>Summa</label><input id="topAmt" type="number" value="100000" step="10000"></div>
+    <div class="field"><label>To'lov tizimi</label>
+      <div class="pay-opts">
+        <div class="pay on" data-top="click"><div class="pi">🟢</div>Click</div>
+        <div class="pay" data-top="payme"><div class="pi">🔵</div>Payme</div>
+        <div class="pay" data-top="uzcard"><div class="pi">💳</div>Uzcard</div>
+      </div></div>
+    <p style="font-size:11.5px;color:var(--muted);margin:-6px 0 14px;line-height:1.4">Eslatma: bu demo oqim. Haqiqiy Click/Payme uchun merchant kalitlari va server callback (webhook) kerak.</p>
+    <button class="btn btn-primary" id="topGo" style="width:100%">To'ldirish</button>`;
+  modal.classList.add('show');
+  modalCard.querySelectorAll('.pay').forEach(p=>p.onclick=()=>{modalCard.querySelectorAll('.pay').forEach(x=>x.classList.remove('on'));p.classList.add('on');topMethod=p.dataset.top;});
+  document.getElementById('topGo').onclick=()=>{
+    const amt=+document.getElementById('topAmt').value||0;
+    wallet+=amt;updateWallet();DB.save();closeModal();
+    toast(`${topMethod.toUpperCase()} orqali +${amt.toLocaleString('ru')} so'm`);
+  };
+}
+document.getElementById('walletPill').onclick=()=>requireLogin(openTopup);
+
+// ================= ENERGIYA TA'MINOTI PANELI (egasi) =================
+function renderEnergyPanel(){
+  const mine=STATIONS.filter(s=>s.mine);
+  const avgLoad=Math.round(mine.reduce((a,s)=>a+s.gridLoad,0)/(mine.length||1));
+  const avgRenew=Math.round(mine.reduce((a,s)=>a+s.renewable,0)/(mine.length||1));
+  const totEnergy=mine.reduce((a,s)=>a+s.energyToday,0);
+  const loadColor=avgLoad>80?'var(--red)':avgLoad>62?'var(--amber)':'var(--lime)';
+  document.getElementById('energyPanel').innerHTML=`
+    <h3>Energiya ta'minoti va tarmoq</h3>
+    <div class="sub">Stansiyalaringizning elektr manbai va tarmoq holati</div>
+    <div class="egrid">
+      <div class="ds" style="text-align:left;padding:16px"><div class="l" style="margin:0 0 8px">Tarmoq yuklamasi</div>
+        <div class="v" style="color:${loadColor};font-size:24px">${avgLoad}%</div>
+        <div style="height:7px;background:var(--line);border-radius:5px;margin-top:9px;overflow:hidden"><div style="height:100%;width:${avgLoad}%;background:${loadColor}"></div></div></div>
+      <div class="ds" style="text-align:left;padding:16px"><div class="l" style="margin:0 0 8px">Qayta tiklanuvchi</div>
+        <div class="v" style="color:var(--teal);font-size:24px">${avgRenew}%</div>
+        <div style="height:7px;background:var(--line);border-radius:5px;margin-top:9px;overflow:hidden"><div style="height:100%;width:${avgRenew}%;background:var(--teal)"></div></div></div>
+      <div class="ds" style="text-align:left;padding:16px"><div class="l" style="margin:0 0 8px">Bugun berilgan</div>
+        <div class="v" style="font-size:24px">${totEnergy.toLocaleString('ru')}</div><div class="l" style="margin-top:4px">kWh energiya</div></div>
+    </div>
+    <div class="st-row" style="border:none;padding-top:4px">
+      <div class="st-dot ${peakMode?'busy':'free'}"></div>
+      <div class="st-info"><div class="n">Tig'iz vaqt rejimi</div>
+        <div class="a">${peakMode?"Tezkor stansiyalar 60 kW gacha cheklangan (tarmoqni himoya qilish)":"Tarmoq barqaror — to'liq quvvat"}</div></div>
+      <div class="toggle ${peakMode?'on':''}" id="peakToggle"></div>
+    </div>`;
+  document.getElementById('peakToggle').onclick=()=>{
+    peakMode=!peakMode;
+    renderEnergyPanel();renderList();
+    if(selId)openDrawer(selId);
+    toast(peakMode?"Tig'iz vaqt: tezkor stansiyalar cheklandi":"Tig'iz vaqt rejimi o'chirildi");
+  };
+}
+
+// ================= AQLLI TAVSIYA: AHP–TOPSIS (dissertatsiya, 2-bob) =================
+const VEHICLES=[
+  {name:"BYD Song Plus DM-i",c:26.6},{name:"BYD Yuan Up",c:45.1},{name:"BYD Chazor",c:18.3},{name:"BYD Song Pro DM-i",c:18.3},
+  {name:"BYD Seagull",c:38.9},{name:"Zeekr 001",c:100},{name:"Volkswagen ID.6 Crozz",c:84.8},{name:"Leapmotor C11",c:78.5},
+  {name:"Changan Deepal S07",c:80},{name:"Li Auto L7",c:52.3}];
+const CRIT=["SM","KV","ZV","N"];
+const CRIT_NAME={SM:"Safar masofasi",KV:"Kutish vaqti",ZV:"Zaryadlash vaqti",N:"Narx"};
+const PAIRS=[["SM","KV"],["SM","ZV"],["SM","N"],["KV","ZV"],["KV","N"],["ZV","N"]];
+let judg={"SM|KV":3,"SM|ZV":2,"SM|N":3,"KV|ZV":1,"KV|N":3,"ZV|N":2};   // standart baholar
+const SAATY=[9,8,7,6,5,4,3,2,1,1/2,1/3,1/4,1/5,1/6,1/7,1/8,1/9];
+function ahp(j){const n=4,A=CRIT.map(()=>CRIT.map(()=>1));
+  PAIRS.forEach(([a,b])=>{const v=j[a+'|'+b];A[CRIT.indexOf(a)][CRIT.indexOf(b)]=v;A[CRIT.indexOf(b)][CRIT.indexOf(a)]=1/v;});
+  const cs=[0,1,2,3].map(c=>A.reduce((t,r)=>t+r[c],0));
+  const w=A.map(r=>r.reduce((t,v,c)=>t+v/cs[c],0)/n);
+  const Aw=A.map(r=>r.reduce((t,v,c)=>t+v*w[c],0));
+  const lam=Aw.reduce((t,v,i)=>t+v/w[i],0)/n, ci=(lam-n)/(n-1);
+  return {w:Object.fromEntries(CRIT.map((c,i)=>[c,w[i]])),lam,ci,cr:ci/0.90};}
+function chargeMin(cbat,s1,s2,P){const eta=.92,lo=Math.max(0,Math.min(s2,80)-s1),hi=Math.max(0,s2-Math.max(s1,80));
+  return (cbat*lo/(100*eta*P)+cbat*hi/(100*eta*P*.5))*60;}
+function topsis(rows,w){const nrm={};CRIT.forEach(c=>nrm[c]=Math.sqrt(rows.reduce((t,r)=>t+r[c]**2,0))||1);
+  const V=rows.map(r=>Object.fromEntries(CRIT.map(c=>[c,w[c]*r[c]/nrm[c]])));
+  const best={},worst={};CRIT.forEach(c=>{const v=V.map(x=>x[c]);best[c]=Math.min(...v);worst[c]=Math.max(...v);});
+  return rows.map((r,i)=>{const sp=Math.sqrt(CRIT.reduce((t,c)=>t+(V[i][c]-best[c])**2,0)),sm=Math.sqrt(CRIT.reduce((t,c)=>t+(V[i][c]-worst[c])**2,0));
+    return {...r,C:(sp+sm)?sm/(sp+sm):1};}).sort((a,b)=>b.C-a.C);}
+function saatyLabel(a,b,v){if(v===1)return "Teng";return v>1?`${a} ${v}`:`${b} ${Math.round(1/v)}`;}
+function openSmart(){
+  const def=VEHICLES.find(v=>v.name===user.car)||VEHICLES[1];
+  modalCard.innerHTML=`
+    <h3>Aqlli tavsiya</h3><div class="msub">AHP og'irliklari + TOPSIS reytingi · 4 mezon: SM, KV, ZV, N</div>
+    <div class="row2">
+      <div class="field"><label>Elektromobil</label><select id="smCar">${VEHICLES.map(v=>`<option ${v.name===def.name?'selected':''} value="${v.c}">${v.name} (${v.c} kWh)</option>`).join('')}</select></div>
+      <div class="field"><label>Maks. DC quvvat, kW</label><input id="smP" type="number" value="80"></div>
+    </div>
+    <div class="row2">
+      <div class="field"><label>Joriy zaryad: <b id="smS1v" style="color:var(--lime)">${user.battery}%</b></label><input type="range" id="smS1" min="5" max="70" value="${user.battery}" style="width:100%"></div>
+      <div class="field"><label>Maqsad</label><select id="smS2"><option value="80">80%</option><option value="90">90%</option><option value="100">100%</option></select></div>
+    </div>
+    <div class="field"><label>Mezonlarni juftma-juft taqqoslash (Saaty shkalasi)</label>
+      ${PAIRS.map(([a,b])=>`<div class="pair">
+        <span>${CRIT_NAME[a]}</span>
+        <select data-pair="${a}|${b}">${SAATY.map(v=>`<option value="${v}" ${Math.abs(v-judg[a+'|'+b])<1e-9?'selected':''}>${saatyLabel(a,b,v)}</option>`).join('')}</select>
+        <span>${CRIT_NAME[b]}</span></div>`).join('')}
+    </div>
+    <div id="smW" style="font-size:12.5px;color:var(--muted);margin:-4px 0 12px"></div>
+    <button class="btn btn-primary" id="smGo" style="width:100%">Hisoblash</button>
+    <div id="smRes" style="margin-top:14px"></div>`;
+  modal.classList.add('show');
+  const showW=()=>{const r=ahp(judg);document.getElementById('smW').innerHTML=
+    CRIT.map(c=>`${c} <b style="color:var(--txt)">${r.w[c].toFixed(3)}</b>`).join(' · ')+
+    ` &nbsp;|&nbsp; λmax=${r.lam.toFixed(3)}, IK=<b style="color:${r.cr<=.1?'var(--lime)':'var(--red)'}">${r.cr.toFixed(3)}</b>${r.cr<=.1?' ✓':' — izchil emas, qayta baholang'}`;return r;};
+  showW();
+  modalCard.querySelectorAll('[data-pair]').forEach(sel=>sel.onchange=()=>{judg[sel.dataset.pair]=+sel.value;showW();});
+  document.getElementById('smS1').oninput=e=>{user.battery=+e.target.value;document.getElementById('smS1v').textContent=e.target.value+'%';};
+  document.getElementById('smGo').onclick=()=>{
+    const r=showW();if(r.cr>0.1){toast("IK > 0,1 — baholarni qayta ko'rib chiqing");return;}
+    const cbat=+document.getElementById('smCar').value,pv=+document.getElementById('smP').value||60;
+    const s1=+document.getElementById('smS1').value,s2=+document.getElementById('smS2').value;
+    const rows=STATIONS.filter(s=>!s.demo&&s.status!=='off'&&s.type==='fast').map(s=>({s,
+      SM:dist(s)*1.3, KV:waitMin(s), ZV:chargeMin(cbat,s1,s2,Math.min(s.power,pv)), N:cbat*(s2-s1)/100/.92*s.price}));
+    const res=topsis(rows,r.w).slice(0,5);
+    document.getElementById('smRes').innerHTML=`<div class="sec-title" style="margin:0 0 8px">Eng mos stansiyalar</div>`+res.map((x,i)=>`
+      <div class="st-row" data-sm="${x.s.id}" style="cursor:pointer">
+        <div style="width:26px;font-weight:800;color:${i?'var(--muted)':'var(--lime)'}">${i+1}</div>
+        <div class="st-info"><div class="n">${x.s.name}</div>
+          <div class="a">📏 ${x.SM.toFixed(1)} km · ⏳ ${x.KV.toFixed(0)} daq · 🔋 ${x.ZV.toFixed(0)} daq · 💰 ${Math.round(x.N).toLocaleString('ru')} so'm</div></div>
+        <div class="st-rev"><div class="num">${x.C.toFixed(3)}</div><div class="lbl">C<sub>i</sub></div></div>
+      </div>`).join('')+`<p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4">C<sub>i</sub> — ideal yechimga yaqinlik koeffitsienti. Masofa yo'l egriligi koeffitsienti 1,3 bilan, kutish vaqti M/M/c modeli, zaryadlash vaqti (1.3) formula (η = 0,92) bo'yicha hisoblangan.</p>`;
+    modalCard.querySelectorAll('[data-sm]').forEach(el=>el.onclick=()=>{closeModal();openDrawer(+el.dataset.sm);});
+  };
+}
+document.getElementById('smartBtn').onclick=openSmart;
+
+// ================= INIT =================
+async function init(){
+  await DB.load();
+  updateWallet();
+  if(WALLET_ON){document.getElementById('walletPill').style.display='';document.body.classList.add('wallet-on');}
+  document.getElementById('srcPill').textContent=`Toshkent · ${STATIONS.filter(s=>!s.demo).length} stansiya`;
+  renderList();renderOwnerStats();renderOwnerStations();renderEnergyPanel();renderChart();
+}
+init();
+</script>
+</body>
+</html>
