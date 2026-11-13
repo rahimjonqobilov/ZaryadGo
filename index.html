@@ -240,6 +240,66 @@
   .bar.peak{background:linear-gradient(180deg,var(--teal),#1aa897)}
   .bar span{position:absolute;bottom:-22px;left:0;right:0;text-align:center;font-size:11px;color:var(--muted)}
 
+
+  /* ---- Aqlli tavsiya: xaritadagi reyting, sezgirlik tahlili ---- */
+  #driverView{position:relative}
+  .mk.rk{background:var(--txt);width:36px;height:36px}
+  .mk.rk span{transform:rotate(45deg);font:800 15px 'Manrope',sans-serif;color:#0a0f0d}
+  .mk.rk.rk1{background:var(--lime);width:44px;height:44px;box-shadow:0 0 0 5px rgba(189,246,60,.22),0 6px 14px rgba(0,0,0,.5)}
+  .mk.rk.rk1 span{font-size:18px}
+  #map.ranked .mk:not(.rk){opacity:.28}
+  #rankPanel{display:none;position:absolute;top:14px;left:402px;width:292px;z-index:450;background:rgba(14,22,20,.94);
+    border:1px solid var(--line);border-radius:14px;padding:10px 12px 9px;box-shadow:0 14px 34px rgba(0,0,0,.5);backdrop-filter:blur(6px)}
+  #rankPanel.show{display:block}
+  .rp-head{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:13px;font-weight:800;margin-bottom:4px}
+  .rp-head button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:8px;cursor:pointer;
+    font:700 11.5px 'Manrope',sans-serif;padding:4px 8px}
+  .rp-head button:hover{color:var(--txt);border-color:var(--muted)}
+  .rp-row{display:flex;align-items:center;gap:9px;width:100%;background:transparent;border:none;border-top:1px solid var(--line);
+    color:var(--txt);cursor:pointer;padding:6px 2px;text-align:left;font:600 12.5px 'Manrope',sans-serif}
+  .rp-row:hover .rp-name{color:var(--lime)}
+  .rp-n{width:20px;height:20px;border-radius:50%;background:var(--txt);color:#0a0f0d;display:grid;place-items:center;font-weight:800;font-size:11.5px;flex-shrink:0}
+  .rp-row:first-of-type .rp-n{background:var(--lime)}
+  .rp-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .rp-c{font-variant-numeric:tabular-nums;color:var(--muted);font-weight:700}
+  .rp-foot{border-top:1px solid var(--line);padding-top:6px;margin-top:1px;font-size:11px;color:var(--muted)}
+  .rankbadge{font:800 10.5px 'Manrope',sans-serif;background:var(--lime);color:#0a0f0d;border-radius:6px;padding:2px 6px;white-space:nowrap}
+  .modal-card.wide{width:700px}
+  .sm-actions{display:flex;gap:10px;margin-top:14px}
+  .sm-actions .btn{padding:12px 10px;font-size:13.5px}
+  .sm-dl{display:inline-flex;align-items:center;gap:6px;margin-top:10px;background:transparent;border:none;color:var(--teal);cursor:pointer;
+    font:700 12.5px 'Manrope',sans-serif;padding:4px 0;text-decoration:underline;text-underline-offset:3px}
+  .sm-dl:hover{color:var(--lime)}
+  .sens{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);
+    --s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;--s5:#d55181}
+  .sens h4{font-size:17px;margin-bottom:4px}
+  .sens .note{font-size:12px;color:var(--muted);line-height:1.45;margin-bottom:12px}
+  .sm-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .sm-tab{font:700 12px 'Manrope',sans-serif;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:30px;padding:7px 12px;cursor:pointer}
+  .sm-tab.on{background:rgba(189,246,60,.13);color:var(--lime);border-color:rgba(189,246,60,.4)}
+  .sens-chart{position:relative;touch-action:pan-y}
+  .sens-chart svg{display:block;width:100%;overflow:visible}
+  .sens-chart text{font-family:'Manrope',sans-serif;font-size:11px;fill:var(--muted)}
+  .sens-chart .ax-title{font-size:11.5px;font-weight:700}
+  .sens-chart .endlab{fill:var(--txt);font-weight:800;font-size:11.5px}
+  .sens-chart .cur{fill:var(--txt);font-weight:700}
+  .sens-tip{position:absolute;top:6px;pointer-events:none;background:var(--panel2);border:1px solid var(--line);border-radius:10px;
+    padding:8px 10px;font-size:11.5px;box-shadow:0 10px 24px rgba(0,0,0,.5);display:none;white-space:nowrap;z-index:2}
+  .sens-tip b{color:var(--txt)}
+  .sens-tip .tr{display:flex;align-items:center;gap:7px;margin-top:3px;color:var(--muted)}
+  .sens-tip .tr span:last-child{margin-left:auto;padding-left:12px;color:var(--txt);font-weight:700;font-variant-numeric:tabular-nums}
+  .sw{display:inline-block;width:14px;height:3px;border-radius:2px;flex-shrink:0}
+  .sens-leg{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:4px 14px;margin:8px 0 14px;font-size:12px;color:var(--muted)}
+  .sens-leg div{display:flex;align-items:center;gap:7px;min-width:0}
+  .sens-leg b{color:var(--txt)}
+  .sens-leg span:last-child{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .sens-tbl{width:100%;border-collapse:collapse;font-size:12px}
+  .sens-tbl th{text-align:left;color:var(--muted);font-weight:700;padding:6px 6px 6px 0;border-bottom:1px solid var(--line);vertical-align:bottom}
+  .sens-tbl td{padding:7px 6px 7px 0;border-bottom:1px solid var(--line);vertical-align:top;color:var(--txt)}
+  .sens-tbl td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .sens-tbl td small{color:var(--muted);font-size:11.5px}
+  .sens-sum{font-size:12.5px;line-height:1.5;color:var(--txt);background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-top:12px}
+
   /* ---- Moslashuvchan maket ---- */
   header{min-width:0}
   .pill{white-space:nowrap}
@@ -259,6 +319,8 @@
     .o-grid{grid-template-columns:1fr}.switcher button span,.acct span{display:none}
     .acct{padding:5px}
     body.show-map .sidebar{display:none}
+    #rankPanel{left:12px;right:12px;top:12px;width:auto}
+    body:not(.show-map) #rankPanel{display:none}
     body.show-map #map{display:block}
     .list{padding-bottom:84px}
     .toast{bottom:84px;max-width:calc(100vw - 24px);pointer-events:none}
@@ -322,6 +384,7 @@
         <div class="chip" data-f="gbt">GB/T</div>
         <div class="chip" data-f="ccs">CCS2</div>
         <div class="chip" data-f="fav">★ Sevimli</div>
+        <div class="chip" data-f="rank" id="rankChip" style="display:none">⚡ Tavsiya TOP-5</div>
       </div>
       <div class="sortrow">Saralash:
         <select id="sortSel">
@@ -334,6 +397,7 @@
       <div class="list" id="list"></div>
     </aside>
     <div id="map"></div>
+    <div id="rankPanel"></div>
     <button class="map-fab" id="mapFab" type="button">
       <svg class="i-map" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg>
       <svg class="i-list" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>
@@ -476,7 +540,10 @@ L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_D
 L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}',{maxZoom:16}).addTo(map);
 const boltSVG='<svg viewBox="0 0 24 24" fill="#0a0f0d"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>';
 const markers={};
-function iconFor(s){return L.divIcon({className:'',html:`<div class="mk ${s.status}">${boltSVG}</div>`,iconSize:[38,38],iconAnchor:[19,38],popupAnchor:[0,-36]});}
+let rankOf={};   // Aqlli tavsiya natijasi: stansiya id -> o'rin (1..5)
+function iconFor(s){const r=rankOf[s.id];
+  if(r){const z=r===1?44:36;return L.divIcon({className:'',html:`<div class="mk rk ${r===1?'rk1':''}"><span>${r}</span></div>`,iconSize:[z,z],iconAnchor:[z/2,z],popupAnchor:[0,-z+2]});}
+  return L.divIcon({className:'',html:`<div class="mk ${s.status}">${boltSVG}</div>`,iconSize:[38,38],iconAnchor:[19,38],popupAnchor:[0,-36]});}
 function makeMarker(s){
   const m=L.marker([s.lat,s.lng],{icon:iconFor(s)}).addTo(map);
   m.on('click',()=>openDrawer(s.id));
@@ -510,7 +577,9 @@ document.getElementById('mapFab').onclick=()=>{
 // draggable "me" marker
 const meMarker=L.marker([me.lat,me.lng],{icon:L.divIcon({className:'',html:'<div class="mk-me"></div>',iconSize:[22,22],iconAnchor:[11,11]}),draggable:true}).addTo(map);
 meMarker.bindTooltip("Mening joylashuvim (suring)",{direction:'top',offset:[0,-12]});
-meMarker.on('dragend',e=>{const p=e.target.getLatLng();me.lat=p.lat;me.lng=p.lng;renderList();});
+meMarker.on('dragend',e=>{const p=e.target.getLatLng();me.lat=p.lat;me.lng=p.lng;
+  if(Object.keys(rankOf).length){clearRank();toast("Joylashuv o'zgardi — tavsiyani qayta hisoblang");}
+  renderList();});
 
 // distance
 function dist(s){
@@ -544,9 +613,11 @@ function passes(s){
   if(activeFilter==='ccs')return (s.conns||[s.conn]).includes('CCS2');
   if(activeFilter==='gbt')return (s.conns||[s.conn]).includes('GB/T');
   if(activeFilter==='fav')return favs.has(s.id);
+  if(activeFilter==='rank')return !!rankOf[s.id];
   return true;
 }
 function sortFn(a,b){
+  if(activeFilter==='rank')return rankOf[a.id]-rankOf[b.id];
   if(sortBy==='dist')return dist(a)-dist(b);
   if(sortBy==='price')return a.price-b.price;
   if(sortBy==='power')return b.power-a.power;
@@ -555,11 +626,11 @@ function sortFn(a,b){
 const starSVG='<svg viewBox="0 0 24 24"><path d="M12 2l3 6.5 7 .8-5 4.8 1.3 7L12 17.8 5.4 21l1.3-7-5-4.8 7-.8z"/></svg>';
 function renderList(){
   const items=STATIONS.filter(passes).sort(sortFn);
-  document.getElementById('countTxt').textContent=`${items.length} ta stansiya · siz tanlagan tartibda`;
+  document.getElementById('countTxt').textContent=activeFilter==='rank'?`${items.length} ta stansiya · AHP–TOPSIS reytingi bo'yicha`:`${items.length} ta stansiya · siz tanlagan tartibda`;
   listEl.innerHTML=items.map(s=>`
     <div class="card ${s.id===selId?'sel':''}" data-id="${s.id}">
       <div class="card-top">
-        <div><div class="card-name">${s.name}</div><div class="card-addr">${s.op||'—'} · ${s.addr}</div></div>
+        <div><div class="card-name">${rankOf[s.id]?`<span class="rankbadge">TOP ${rankOf[s.id]}</span>`:''}${s.name}</div><div class="card-addr">${s.op||'—'} · ${s.addr}</div></div>
         <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
           <div class="status ${STAT_CLS[s.status]}">${STAT_LABEL[s.status]}</div>
           <button class="fav ${favs.has(s.id)?'on':''}" data-fav="${s.id}" aria-label="Sevimlilarga qo'shish"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 14c1.5-1.5 3-3.4 3-5.5A4.5 4.5 0 0 0 12 6 4.5 4.5 0 0 0 2 8.5c0 2.1 1.5 4 3 5.5l7 7z"/></svg></button>
@@ -635,7 +706,7 @@ function openDrawer(id){
 
 // ================= MODALS =================
 const modal=document.getElementById('modal'),modalCard=document.getElementById('modalCard');
-function closeModal(){modal.classList.remove('show');}
+function closeModal(){modal.classList.remove('show');modalCard.classList.remove('wide');}
 modal.onclick=e=>{if(e.target===modal)closeModal();};
 // har bir oynaga yopish (×) tugmasi; Esc — avval oynani, keyin yon panelni yopadi
 new MutationObserver(()=>{
@@ -1013,17 +1084,193 @@ function openSmart(){
     const s1=+document.getElementById('smS1').value,s2=+document.getElementById('smS2').value;
     const rows=STATIONS.filter(s=>!s.demo&&s.status!=='off'&&s.type==='fast').map(s=>({s,
       SM:dist(s)*1.3, KV:waitMin(s), ZV:chargeMin(cbat,s1,s2,Math.min(s.power,pv)), N:cbat*(s2-s1)/100/.92*s.price}));
-    const res=topsis(rows,r.w).slice(0,5);
+    const all=topsis(rows,r.w),res=all.slice(0,5);
+    const carSel=document.getElementById('smCar');
+    smart={rows,all,w:r.w,lam:r.lam,cr:r.cr,car:VEHICLES[carSel.selectedIndex].name,cbat,pv,s1,s2,lat:me.lat,lng:me.lng};
     document.getElementById('smRes').innerHTML=`<div class="sec-title" style="margin:0 0 8px">Eng mos stansiyalar</div>`+res.map((x,i)=>`
       <div class="st-row" data-sm="${x.s.id}" style="cursor:pointer">
         <div style="width:26px;font-weight:800;color:${i?'var(--muted)':'var(--lime)'}">${i+1}</div>
         <div class="st-info"><div class="n">${x.s.name}</div>
           <div class="a">📏 ${x.SM.toFixed(1)} km · ⏳ ${x.KV.toFixed(0)} daq · 🔋 ${x.ZV.toFixed(0)} daq · 💰 ${Math.round(x.N).toLocaleString('ru')} so'm</div></div>
         <div class="st-rev"><div class="num">${x.C.toFixed(3)}</div><div class="lbl">C<sub>i</sub></div></div>
-      </div>`).join('')+`<p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4">C<sub>i</sub> — ideal yechimga yaqinlik koeffitsienti. Masofa yo'l egriligi koeffitsienti 1,3 bilan, kutish vaqti M/M/c modeli, zaryadlash vaqti (1.3) formula (η = 0,92) bo'yicha hisoblangan.</p>`;
+      </div>`).join('')+`<p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.4">C<sub>i</sub> — ideal yechimga yaqinlik koeffitsienti. Masofa yo'l egriligi koeffitsienti 1,3 bilan, kutish vaqti M/M/c modeli, zaryadlash vaqti (1.3) formula (η = 0,92) bo'yicha hisoblangan.</p>
+      <div class="sm-actions">
+        <button class="btn btn-primary" id="smMap" type="button">Xaritada ko'rsatish</button>
+        <button class="btn btn-ghost" id="smSens" type="button">Sezgirlik tahlili</button>
+      </div>
+      <button class="sm-dl" id="smCsv" type="button">⬇ To'liq reyting — ${all.length} ta stansiya (CSV)</button>
+      <div id="smSensBox"></div>`;
     modalCard.querySelectorAll('[data-sm]').forEach(el=>el.onclick=()=>{closeModal();openDrawer(+el.dataset.sm);});
+    document.getElementById('smMap').onclick=showRankOnMap;
+    document.getElementById('smSens').onclick=()=>{renderSens('SM');document.getElementById('smSensBox').scrollIntoView({behavior:'smooth',block:'start'});};
+    document.getElementById('smCsv').onclick=exportRankCsv;
   };
 }
+let smart=null;   // oxirgi hisob: {rows, all, w, ...}
+
+// ---- Natijani xaritada ko'rsatish ----
+function refreshIcons(){STATIONS.forEach(s=>{const m=markers[s.id];if(m){m.setIcon(iconFor(s));m.setZIndexOffset(rankOf[s.id]?2000-rankOf[s.id]*100:0);}});}
+function clearRank(){
+  rankOf={};refreshIcons();
+  map.getContainer().classList.remove('ranked');
+  document.getElementById('rankPanel').classList.remove('show');
+  document.getElementById('rankChip').style.display='none';
+  if(activeFilter==='rank')document.querySelector('.chip[data-f="all"]').click();else renderList();
+}
+function showRankOnMap(){
+  if(!smart)return;
+  const top=smart.all.slice(0,5);
+  rankOf={};top.forEach((x,i)=>rankOf[x.s.id]=i+1);
+  refreshIcons();
+  map.getContainer().classList.add('ranked');
+  const panel=document.getElementById('rankPanel');
+  panel.innerHTML=`<div class="rp-head"><span>Aqlli tavsiya · TOP-5</span><button type="button" id="rpClear">Tozalash ×</button></div>`+
+    top.map((x,i)=>`<button type="button" class="rp-row" data-id="${x.s.id}"><span class="rp-n">${i+1}</span><span class="rp-name">${x.s.name}</span><span class="rp-c">${x.C.toFixed(3)}</span></button>`).join('')+
+    `<div class="rp-foot">Vaznlar: ${CRIT.map(c=>`${c} ${smart.w[c].toFixed(3)}`).join(' · ')}</div>`;
+  panel.classList.add('show');
+  panel.querySelector('#rpClear').onclick=clearRank;
+  panel.querySelectorAll('.rp-row').forEach(b=>b.onclick=()=>openDrawer(+b.dataset.id));
+  const chip=document.getElementById('rankChip');chip.style.display='';chip.click();
+  closeModal();
+  mapReady=true;pendingFocus=null;   // xarita ochilganda syncMap barcha stansiyalarga qayta moslamasin
+  if(window.matchMedia('(max-width:900px)').matches&&!document.body.classList.contains('show-map')){
+    document.body.classList.add('show-map');document.getElementById('mapFabTxt').textContent="Ro'yxat";
+  }
+  setTimeout(()=>{
+    if(!mapVisible())return;
+    map.invalidateSize();
+    const mr=map.getContainer().getBoundingClientRect(),pr=panel.getBoundingClientRect();
+    const narrow=pr.width>mr.width*.6;   // telefonda panel xarita tepasini egallaydi
+    const tl=narrow?[30,Math.max(60,pr.bottom-mr.top+50)]:[Math.max(40,pr.right-mr.left+30),60];
+    map.fitBounds([...top.map(x=>[x.s.lat,x.s.lng]),[smart.lat,smart.lng]],{paddingTopLeft:tl,paddingBottomRight:[40,narrow?90:50],maxZoom:14});
+  },120);
+}
+
+// ---- Sezgirlik tahlili: bitta mezon vazni 0..1, qolganlari o'zaro nisbatini saqlagan holda qayta me'yorlanadi ----
+const SERIES=['var(--s1)','var(--s2)','var(--s3)','var(--s4)','var(--s5)'];
+function wVary(w,k,x){const rest=1-w[k],o={};CRIT.forEach(c=>o[c]=c===k?x:(rest>1e-12?w[c]*(1-x)/rest:(1-x)/(CRIT.length-1)));return o;}
+function sensCurve(k,ids,n){
+  const out=[];
+  for(let i=0;i<=n;i++){const x=i/n,res=topsis(smart.rows,wVary(smart.w,k,x)),m={};
+    res.forEach(r=>m[r.s.id]=r.C);out.push({x,lead:res[0].s,vals:ids.map(id=>m[id])});}
+  return out;
+}
+// yetakchi (1-o'rin) o'zgarmaydigan vazn oralig'i va chegarada uning o'rnini egallovchi stansiya
+function sensStability(k){
+  const N=1000,L=smart.all[0].s.id;
+  // teng natija (C farqi < 1e-9) yetakchi almashishi hisoblanmaydi
+  const lead=x=>{const r=topsis(smart.rows,wVary(smart.w,k,x)),l=r.find(o=>o.s.id===L);return r[0].C-l.C<1e-9?l.s:r[0].s;};
+  const i0=Math.round(smart.w[k]*N);
+  if(lead(i0/N).id!==L)return {lo:smart.w[k],hi:smart.w[k],below:null,above:null};
+  let lo=i0,hi=i0,below=null,above=null;
+  while(lo>0){const s=lead((lo-1)/N);if(s.id!==L){below=s;break;}lo--;}
+  while(hi<N){const s=lead((hi+1)/N);if(s.id!==L){above=s;break;}hi++;}
+  return {lo:lo/N,hi:hi/N,below,above};
+}
+function sensAll(){return Object.fromEntries(CRIT.map(k=>[k,sensStability(k)]));}
+function renderSens(k){
+  if(!smart)return;
+  modalCard.classList.add('wide');
+  const top=smart.all.slice(0,5),ids=top.map(x=>x.s.id),box=document.getElementById('smSensBox');
+  if(!smart.stab)smart.stab=sensAll();
+  const stab=smart.stab,leader=top[0].s;
+  // xulosa: ichki chegaralar orasida joriy vaznga eng yaqini
+  let near=null;
+  CRIT.forEach(c=>{const st=stab[c];
+    if(st.below&&(!near||smart.w[c]-st.lo<near.d))near={c,d:smart.w[c]-st.lo,to:st.lo,dir:'kamaysa',by:st.below};
+    if(st.above&&(!near||st.hi-smart.w[c]<near.d))near={c,d:st.hi-smart.w[c],to:st.hi,dir:'oshsa',by:st.above};});
+  const sum=near
+    ?`Eng sezgir mezon — <b>${CRIT_NAME[near.c]}</b>: uning vazni (joriy ${smart.w[near.c].toFixed(3)}) ${near.to.toFixed(3)} dan ${near.dir==='oshsa'?'oshsa':'pastga tushsa'}, 1-o'ringa «${near.by.name}» chiqadi (farq ${near.d.toFixed(3)}).`
+    :`Yetakchi «${leader.name}» har bir mezon vaznining butun [0; 1] oralig'ida 1-o'rinni saqlaydi.`;
+  box.innerHTML=`<div class="sens">
+    <h4>Sezgirlik tahlili</h4>
+    <div class="note">Tanlangan mezon vazni 0 dan 1 gacha o'zgartiriladi, qolgan vaznlar o'zaro nisbatini saqlagan holda qayta me'yorlanadi. Grafikda joriy TOP-5 stansiyaning C<sub>i</sub> qiymati ko'rsatilgan.</div>
+    <div class="sm-tabs">${CRIT.map(c=>`<button type="button" class="sm-tab ${c===k?'on':''}" data-k="${c}">${CRIT_NAME[c]} (${c})</button>`).join('')}</div>
+    <div class="sens-chart" id="sensChart"></div>
+    <div class="sens-leg">${top.map((x,i)=>`<div><span class="sw" style="background:${SERIES[i]}"></span><b>${i+1}</b><span title="${x.s.name}">${x.s.name}</span></div>`).join('')}</div>
+    <table class="sens-tbl"><thead><tr><th>Mezon</th><th>Joriy vazn</th><th>Yetakchi o'zgarmaydigan oraliq</th><th>Chegaradan keyingi yetakchi</th></tr></thead>
+    <tbody>${CRIT.map(c=>{const st=stab[c];return `<tr><td>${CRIT_NAME[c]}</td><td class="num">${smart.w[c].toFixed(3)}</td>
+      <td class="num">${st.lo.toFixed(3)} – ${st.hi.toFixed(3)}</td>
+      <td><small>${st.below?`↓ ${st.below.name}`:'↓ —'}<br>${st.above?`↑ ${st.above.name}`:'↑ —'}</small></td></tr>`;}).join('')}</tbody></table>
+    <div class="sens-sum">Joriy yetakchi: <b>${leader.name}</b> (C<sub>i</sub> = ${top[0].C.toFixed(3)}). ${sum}</div>
+    <button class="sm-dl" id="sensCsv" type="button">⬇ Sezgirlik tahlili jadvali (CSV)</button>
+  </div>`;
+  box.querySelectorAll('.sm-tab').forEach(b=>b.onclick=()=>renderSens(b.dataset.k));
+  document.getElementById('sensCsv').onclick=exportSensCsv;
+  drawSens(k,top,stab[k]);
+}
+function drawSens(k,top,st){
+  const host=document.getElementById('sensChart'),ids=top.map(x=>x.s.id),n=50,data=sensCurve(k,ids,n);
+  const W=Math.max(260,host.clientWidth),H=Math.round(Math.min(310,Math.max(220,W*.5)));
+  const m={l:40,r:24,t:22,b:38},pw=W-m.l-m.r,ph=H-m.t-m.b;
+  let lo=1,hi=0;data.forEach(d=>d.vals.forEach(v=>{lo=Math.min(lo,v);hi=Math.max(hi,v);}));
+  lo=Math.max(0,Math.floor((lo-.02)*10)/10);hi=Math.min(1,Math.ceil((hi+.02)*10)/10);if(hi-lo<.2)lo=Math.max(0,hi-.2);
+  const X=x=>m.l+x*pw,Y=v=>m.t+(hi-v)/(hi-lo)*ph;
+  const span=hi-lo,step=span>.61?.2:.1,ticks=[];for(let v=lo;v<=hi+1e-9;v+=step)ticks.push(+v.toFixed(2));
+  // chiziq oxiridagi o'rin raqamlari — ustma-ust tushmasligi uchun suriladi
+  const ends=top.map((x,i)=>({i,y:Y(data[n].vals[i])})).sort((a,b)=>a.y-b.y);
+  for(let j=1;j<ends.length;j++)if(ends[j].y-ends[j-1].y<12)ends[j].y=ends[j-1].y+12;
+  const wk=smart.w[k],curX=X(wk),curAnchor=wk>.82?'end':wk<.12?'start':'middle';
+  host.innerHTML=`<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Sezgirlik tahlili: ${CRIT_NAME[k]} vazniga bog'liq C_i">
+    <rect x="${X(st.lo)}" y="${m.t}" width="${Math.max(0,X(st.hi)-X(st.lo))}" height="${ph}" fill="#eaf3ee" opacity=".055"/>
+    ${ticks.map(v=>`<line x1="${m.l}" x2="${m.l+pw}" y1="${Y(v)}" y2="${Y(v)}" stroke="#1f322c"/><text x="${m.l-7}" y="${Y(v)+4}" text-anchor="end">${v.toFixed(1)}</text>`).join('')}
+    ${[0,.2,.4,.6,.8,1].map(v=>`<text x="${X(v)}" y="${m.t+ph+16}" text-anchor="middle">${v.toFixed(1)}</text>`).join('')}
+    <text class="ax-title" x="${m.l+pw/2}" y="${H-4}" text-anchor="middle">${CRIT_NAME[k]} vazni, w</text>
+    <text class="ax-title" x="${m.l-30}" y="12">C</text>
+    <line x1="${curX}" x2="${curX}" y1="${m.t}" y2="${m.t+ph}" stroke="#7d958c" stroke-dasharray="4 4"/>
+    <text class="cur" x="${curX}" y="${m.t-7}" text-anchor="${curAnchor}">joriy w = ${wk.toFixed(3)}</text>
+    ${top.map((x,i)=>`<path d="${data.map((d,j)=>(j?'L':'M')+X(d.x).toFixed(1)+' '+Y(d.vals[i]).toFixed(1)).join('')}" fill="none" stroke="${SERIES[i]}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`).join('')}
+    ${ends.map(e=>`<text class="endlab" x="${m.l+pw+7}" y="${e.y+4}">${e.i+1}</text>`).join('')}
+    <g id="sensHover" style="display:none"><line id="sensX" y1="${m.t}" y2="${m.t+ph}" stroke="#eaf3ee" stroke-opacity=".45"/>
+      ${top.map((x,i)=>`<circle r="4.5" fill="${SERIES[i]}" stroke="#0e1614" stroke-width="2"/>`).join('')}</g>
+    <rect id="sensHit" x="${m.l}" y="${m.t}" width="${pw}" height="${ph}" fill="transparent"/>
+  </svg><div class="sens-tip" id="sensTip"></div>`;
+  const hov=host.querySelector('#sensHover'),tip=host.querySelector('#sensTip'),dots=[...hov.querySelectorAll('circle')],xl=host.querySelector('#sensX');
+  const move=e=>{
+    const r=host.querySelector('svg').getBoundingClientRect(),cx=(e.touches?e.touches[0].clientX:e.clientX)-r.left;
+    const j=Math.max(0,Math.min(n,Math.round((cx-m.l)/pw*n))),d=data[j],px=X(d.x);
+    hov.style.display='';xl.setAttribute('x1',px);xl.setAttribute('x2',px);
+    dots.forEach((c,i)=>{c.setAttribute('cx',px);c.setAttribute('cy',Y(d.vals[i]));});
+    tip.innerHTML=`<b>w = ${d.x.toFixed(2)}</b> · yetakchi: ${d.lead.name}`+
+      top.map((x,i)=>({i,v:d.vals[i]})).sort((a,b)=>b.v-a.v).map(o=>`<div class="tr"><span class="sw" style="background:${SERIES[o.i]}"></span><span>${o.i+1}. ${top[o.i].s.name}</span><span>${o.v.toFixed(3)}</span></div>`).join('');
+    tip.style.display='block';
+    const tw=tip.offsetWidth;tip.style.left=Math.max(0,Math.min(W-tw,px>W/2?px-tw-12:px+12))+'px';
+  };
+  const hit=host.querySelector('#sensHit');
+  hit.addEventListener('mousemove',move);hit.addEventListener('touchstart',move,{passive:true});hit.addEventListener('touchmove',move,{passive:true});
+  hit.addEventListener('mouseleave',()=>{hov.style.display='none';tip.style.display='none';});
+}
+
+// ---- CSV (Excel uchun: ajratgich «;», o'nlik vergul, UTF-8 BOM) ----
+function csvCell(v){if(v==null)return '';if(typeof v==='number')return String(v).replace('.',',');v=String(v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v;}
+function csvText(rows){return '﻿'+rows.map(r=>r.map(csvCell).join(';')).join('\r\n');}
+function downloadCsv(name,rows){
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csvText(rows)],{type:'text/csv;charset=utf-8'}));a.download=name;
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),3000);toast("Fayl yuklab olindi: "+name);
+}
+function stamp(){const d=new Date(),p=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${p(d.getMonth()+1)}-${p(d.getDate())}`;}
+const rnd=(v,k)=>+v.toFixed(k);
+function csvHead(title){return [[title],["Sana",stamp()],
+  ["Elektromobil",smart.car,"Batareya sig'imi, kWh",smart.cbat],
+  ["Maks. DC quvvat, kW",smart.pv,"Joriy zaryad, %",smart.s1,"Maqsad, %",smart.s2],
+  ["Joylashuv (kenglik, uzunlik)",rnd(smart.lat,5),rnd(smart.lng,5)],
+  ["Mezon vaznlari (AHP)",...CRIT.flatMap(c=>[c,rnd(smart.w[c],4)])],
+  ["λmax",rnd(smart.lam,4),"IK",rnd(smart.cr,4)],[]];}
+function rankCsvRows(){return [...csvHead("ZaryadGo — AHP–TOPSIS reytingi"),
+  ["O'rin","Stansiya","Operator","Tuman","Quvvat, kW","SM, km","KV, daq","ZV, daq","N, so'm","C_i"],
+  ...smart.all.map((x,i)=>[i+1,x.s.name,x.s.op||'',x.s.addr||'',x.s.power,rnd(x.SM,2),rnd(x.KV,1),rnd(x.ZV,1),Math.round(x.N),rnd(x.C,4)])];}
+function sensCsvRows(){
+  const top=smart.all.slice(0,5),ids=top.map(x=>x.s.id),stab=smart.stab||(smart.stab=sensAll());
+  const rows=[...csvHead("ZaryadGo — sezgirlik tahlili (TOPSIS C_i ning mezon vazniga bog'liqligi)"),
+    ["Yetakchi (1-o'rin) o'zgarmaydigan vazn oralig'i"],
+    ["Mezon","Joriy vazn","Quyi chegara","Yuqori chegara","Quyi chegaradan keyingi yetakchi","Yuqori chegaradan keyingi yetakchi"],
+    ...CRIT.map(c=>[CRIT_NAME[c]+' ('+c+')',rnd(smart.w[c],4),stab[c].lo,stab[c].hi,stab[c].below?stab[c].below.name:'—',stab[c].above?stab[c].above.name:'—']),[]];
+  CRIT.forEach(c=>{rows.push([CRIT_NAME[c]+' ('+c+') vazni o\'zgarganda C_i'],["w",...top.map((x,i)=>`${i+1}. ${x.s.name}`),"Yetakchi"]);
+    sensCurve(c,ids,50).forEach(d=>rows.push([rnd(d.x,2),...d.vals.map(v=>rnd(v,4)),d.lead.name]));rows.push([]);});
+  return rows;
+}
+function exportRankCsv(){if(smart)downloadCsv(`zaryadgo-reyting-${stamp()}.csv`,rankCsvRows());}
+function exportSensCsv(){if(smart)downloadCsv(`zaryadgo-sezgirlik-${stamp()}.csv`,sensCsvRows());}
 document.getElementById('smartBtn').onclick=openSmart;
 
 // ================= INIT =================
